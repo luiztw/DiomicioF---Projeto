@@ -178,33 +178,6 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* Quick Actions */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-6 text-white">
-        <h3 className="text-xl font-semibold mb-4">Ações Rápidas</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <button className="bg-white/20 backdrop-blur-sm rounded-xl p-4 hover:bg-white/30 transition-colors text-left">
-            <Users className="w-6 h-6 mb-2" />
-            <h4 className="font-medium">Cadastrar Usuário</h4>
-            <p className="text-sm opacity-90">Adicionar novo usuário ao sistema</p>
-          </button>
-          <button className="bg-white/20 backdrop-blur-sm rounded-xl p-4 hover:bg-white/30 transition-colors text-left">
-            <FileText className="w-6 h-6 mb-2" />
-            <h4 className="font-medium">Nova Avaliação</h4>
-            <p className="text-sm opacity-90">Registrar avaliação de experiência</p>
-          </button>
-          <button className="bg-white/20 backdrop-blur-sm rounded-xl p-4 hover:bg-white/30 transition-colors text-left">
-            <Building className="w-6 h-6 mb-2" />
-            <h4 className="font-medium">Cadastrar Empresa</h4>
-            <p className="text-sm opacity-90">Adicionar nova empresa parceira</p>
-          </button>
-          <button className="bg-white/20 backdrop-blur-sm rounded-xl p-4 hover:bg-white/30 transition-colors text-left">
-            <UserCheck className="w-6 h-6 mb-2" />
-            <h4 className="font-medium">Cadastrar Funcionário</h4>
-            <p className="text-sm opacity-90">Adicionar novo funcionário</p>
-          </button>
-        </div>
-      </div>
     </div>
   );
 };
