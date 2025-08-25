@@ -217,16 +217,7 @@ const UsersManagement: React.FC = () => {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="text-center">
-        <div className="w-16 h-16 bg-gradient-to-br from-red-600 to-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Users className="w-8 h-8 text-white" />
-        </div>
-        <h2 className="text-3xl font-bold text-gray-900 mb-3">Gestão de Usuários</h2>
-        <p className="text-gray-600">
-          Cadastre, acompanhe e avalie usuários durante todo o processo
-        </p>
-      </div>
-
+      {/* Removido conforme solicitado */}
       {/* Navigation Menu */}
       <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">

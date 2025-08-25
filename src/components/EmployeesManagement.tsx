@@ -571,21 +571,14 @@ const EmployeesManagement: React.FC = () => {
     </div>
   );
 
+  const renderContent = () => {
+    return activeView === 'register' ? renderEmployeeForm() : renderEmployeesList();
+  };
+
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div className="text-center">
-        <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
-          <UserCheck className="w-8 h-8 text-white" />
-        </div>
-        <h2 className="text-3xl font-bold text-gray-900 mb-3">Gestão de Funcionários</h2>
-        <p className="text-gray-600">
-          Cadastre e gerencie funcionários do sistema com controle de permissões
-        </p>
-      </div>
-
       {/* Content */}
-      {activeView === 'register' ? renderEmployeeForm() : renderEmployeesList()}
+      {renderContent()}
     </div>
   );
 };
