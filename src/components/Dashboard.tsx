@@ -6,40 +6,30 @@ const Dashboard: React.FC = () => {
     {
       title: 'Total de Usuários',
       value: '127',
-      change: '+12%',
-      changeType: 'positive',
       icon: Users,
       color: 'bg-blue-500'
     },
     {
       title: 'Empresas Parceiras',
       value: '34',
-      change: '+5%',
-      changeType: 'positive',
       icon: Building,
       color: 'bg-green-500'
     },
     {
       title: 'Em Experiência',
       value: '23',
-      change: '+8%',
-      changeType: 'positive',
       icon: Clock,
       color: 'bg-yellow-500'
     },
     {
       title: 'Encaminhados',
       value: '89',
-      change: '+15%',
-      changeType: 'positive',
       icon: CheckCircle,
       color: 'bg-purple-500'
     },
     {
       title: 'Funcionários Ativos',
       value: '12',
-      change: '+2%',
-      changeType: 'positive',
       icon: UserCheck,
       color: 'bg-indigo-500'
     }
@@ -130,18 +120,13 @@ const Dashboard: React.FC = () => {
           return (
             <div key={index} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between mb-4">
-                <div className={`w-12 h-12 ${stat.color} rounded-xl flex items-center justify-center`}>
-                  <Icon className="w-6 h-6 text-white" />
+                <div className="flex items-center gap-3">
+                  <div className={`w-12 h-12 ${stat.color} rounded-xl flex items-center justify-center`}>
+                    <Icon className="w-6 h-6 text-white" />
+                  </div>
+                  <span className="text-2xl font-bold text-gray-900">{stat.value}</span>
                 </div>
-                <span className={`text-sm font-medium px-2 py-1 rounded-full ${
-                  stat.changeType === 'positive' 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-red-100 text-red-800'
-                }`}>
-                  {stat.change}
-                </span>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-1">{stat.value}</h3>
               <p className="text-gray-600 text-sm">{stat.title}</p>
             </div>
           );
@@ -188,9 +173,6 @@ const Dashboard: React.FC = () => {
                   <p className="text-sm font-medium text-gray-900">{task.task}</p>
                   <p className="text-xs text-gray-500">Prazo: {task.dueDate}</p>
                 </div>
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(task.priority)}`}>
-                  {task.priority === 'high' ? 'Alta' : task.priority === 'medium' ? 'Média' : 'Baixa'}
-                </span>
               </div>
             ))}
           </div>
