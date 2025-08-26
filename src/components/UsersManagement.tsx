@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Users, Plus, Search, Filter, Eye, Edit, Trash2, FileText, Calendar, Briefcase } from 'lucide-react';
 import UserRegistration from './UserRegistration';
 import TrialPeriod from './TrialPeriod';
@@ -11,6 +11,19 @@ const UsersManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedUser, setSelectedUser] = useState(null);
+  const [editUser, setEditUser] = useState<any | null>(null);
+
+  // Travar o scroll do fundo quando modal está aberto
+  useEffect(() => {
+    if (selectedUser || editUser) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [selectedUser, editUser]);
 
   const users = [
     {
@@ -145,6 +158,38 @@ const UsersManagement: React.FC = () => {
     );
   };
 
+  const renderEditUserModal = () => {
+    if (!editUser) return null;
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+        <div className="relative w-full max-w-xl h-[90vh] flex items-center justify-center">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-xl w-full p-8 overflow-y-auto h-full">
+            <div className="sticky top-0 left-0 z-10 bg-white pb-4 mb-4">
+              <button
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-2xl font-bold"
+                onClick={() => setEditUser(null)}
+                aria-label="Fechar"
+                style={{ position: 'fixed', top: '32px', right: '32px' }}
+              >
+                &times;
+              </button>
+              <h2 className="text-2xl font-bold text-gray-900 border-b pb-3">Editar Usuário</h2>
+            </div>
+            <UserRegistration
+              user={editUser}
+              mode="edit"
+              onCancel={() => setEditUser(null)}
+              onSave={(updatedUser: any) => {
+                // Atualize os dados do usuário na lista, se necessário
+                setEditUser(null);
+              }}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderUsersList = () => (
     <div className="space-y-6">
       <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
@@ -213,7 +258,7 @@ const UsersManagement: React.FC = () => {
                     <button
                       className="text-gray-500 hover:text-gray-800 p-2 rounded"
                       title="Editar"
-                      // onClick={...}
+                      onClick={() => setEditUser(user)}
                     >
                       <Edit className="w-5 h-5" />
                     </button>
@@ -232,6 +277,7 @@ const UsersManagement: React.FC = () => {
         </table>
       </div>
       {renderUserModal()}
+      {renderEditUserModal()}
     </div>
   );
 
