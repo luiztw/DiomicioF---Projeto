@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import { User, Phone, FileText, Save, Plus } from 'lucide-react';
 
-const UserRegistration: React.FC = () => {
+type UserRegistrationProps = {
+  mode?: "edit" | "create"; // você pode expandir com mais modos se quiser
+};
+
+const UserRegistration: React.FC<UserRegistrationProps> = ({ mode = "create" }) => {
   const [formData, setFormData] = useState({
     fullName: '',
     birthDate: '',
@@ -30,15 +34,17 @@ const UserRegistration: React.FC = () => {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="text-center">
-        <div className="w-16 h-16 bg-gradient-to-br from-red-600 to-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
-          <User className="w-8 h-8 text-white" />
+      {mode !== "edit" && (
+        <div className="text-center">
+          <div className="w-16 h-16 bg-gradient-to-br from-red-600 to-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <User className="w-8 h-8 text-white" />
+          </div>
+          <h2 className="text-3xl font-bold text-gray-900 mb-3">Cadastro de Usuários</h2>
+          <p className="text-gray-600">
+            Registre as informações pessoais e familiares dos novos usuários
+          </p>
         </div>
-        <h2 className="text-3xl font-bold text-gray-900 mb-3">Cadastro de Usuários</h2>
-        <p className="text-gray-600">
-          Registre as informações pessoais e familiares dos novos usuários
-        </p>
-      </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Informações Pessoais */}
