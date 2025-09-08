@@ -438,21 +438,14 @@ const CompaniesManagement: React.FC = () => {
     </div>
   );
 
+  const renderContent = () => {
+    return activeView === 'register' ? renderCompanyForm() : renderCompaniesList();
+  };
+
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div className="text-center">
-        <div className="w-16 h-16 bg-gradient-to-br from-green-600 to-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Building className="w-8 h-8 text-white" />
-        </div>
-        <h2 className="text-3xl font-bold text-gray-900 mb-3">Gestão de Empresas</h2>
-        <p className="text-gray-600">
-          Cadastre e gerencie empresas parceiras para encaminhamento de usuários
-        </p>
-      </div>
-
       {/* Content */}
-      {activeView === 'register' ? renderCompanyForm() : renderCompaniesList()}
+      {renderContent()}
     </div>
   );
 };
