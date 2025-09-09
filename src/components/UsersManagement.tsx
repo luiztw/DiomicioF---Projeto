@@ -10,8 +10,8 @@ const UsersManagement: React.FC = () => {
   const [activeView, setActiveView] = useState('list');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [editUser, setEditUser] = useState<any | null>(null);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [editUser, setEditUser] = useState<any>(null);
 
   // Travar o scroll do fundo quando modal está aberto
   useEffect(() => {
@@ -161,29 +161,32 @@ const UsersManagement: React.FC = () => {
   const renderEditUserModal = () => {
     if (!editUser) return null;
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-        <div className="relative w-full max-w-xl h-[90vh] flex items-center justify-center">
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-xl w-full p-8 overflow-y-auto h-full">
-            <div className="sticky top-0 left-0 z-10 bg-white pb-4 mb-4">
-              <button
-                className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-2xl font-bold"
-                onClick={() => setEditUser(null)}
-                aria-label="Fechar"
-                style={{ position: 'fixed', top: '32px', right: '32px' }}
-              >
-                &times;
-              </button>
-              <h2 className="text-2xl font-bold text-gray-900 border-b pb-3">Editar Usuário</h2>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4">
+        <div className="relative w-full max-w-4xl h-[95vh] flex items-center justify-center">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-xl w-full overflow-y-auto h-full relative">
+            <div className="sticky top-0 left-0 z-10 bg-white p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-gray-900">Editar Usuário</h2>
+                <button
+                  className="text-gray-400 hover:text-gray-700 text-2xl font-bold p-2 rounded-full hover:bg-gray-100 transition-colors"
+                  onClick={() => setEditUser(null)}
+                  aria-label="Fechar"
+                >
+                  &times;
+                </button>
+              </div>
             </div>
-            <UserRegistration
-              user={editUser}
-              mode="edit"
-              onCancel={() => setEditUser(null)}
-              onSave={(updatedUser: any) => {
-                // Atualize os dados do usuário na lista, se necessário
-                setEditUser(null);
-              }}
-            />
+            <div className="p-6">
+              <UserRegistration
+                user={editUser}
+                mode="edit"
+                onCancel={() => setEditUser(null)}
+                onSave={() => {
+                  // Atualize os dados do usuário na lista, se necessário
+                  setEditUser(null);
+                }}
+              />
+            </div>
           </div>
         </div>
       </div>

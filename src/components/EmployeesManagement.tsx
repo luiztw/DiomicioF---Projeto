@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { UserCheck, Plus, Search, Filter, Eye, Edit, Trash2, Phone, Mail, Shield, Calendar, Award, Clock } from 'lucide-react';
+import { UserCheck, Plus, Search, Filter, Eye, Edit, Trash2, Phone, Mail, Calendar, Award, Clock } from 'lucide-react';
 
 const EmployeesManagement: React.FC = () => {
   const [activeView, setActiveView] = useState('list');
@@ -18,7 +18,6 @@ const EmployeesManagement: React.FC = () => {
     admissionDate: '',
     salary: '',
     workSchedule: '',
-    permissions: [] as string[],
     observations: ''
   });
 
@@ -103,30 +102,9 @@ const EmployeesManagement: React.FC = () => {
     'Serviço Social'
   ];
 
-  const permissionsList = [
-    { id: 'admin', label: 'Administrador', description: 'Acesso total ao sistema' },
-    { id: 'users', label: 'Gestão de Usuários', description: 'Cadastrar e gerenciar usuários' },
-    { id: 'companies', label: 'Gestão de Empresas', description: 'Cadastrar e gerenciar empresas' },
-    { id: 'evaluations', label: 'Avaliações', description: 'Realizar avaliações de experiência' },
-    { id: 'interviews', label: 'Entrevistas', description: 'Conduzir entrevistas com pais' },
-    { id: 'placements', label: 'Encaminhamentos', description: 'Gerenciar encaminhamentos' },
-    { id: 'followup', label: 'Acompanhamento', description: 'Realizar visitas de acompanhamento' },
-    { id: 'reports', label: 'Relatórios', description: 'Gerar e visualizar relatórios' },
-    { id: 'basic', label: 'Acesso Básico', description: 'Visualização limitada' }
-  ];
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handlePermissionChange = (permissionId: string) => {
-    setFormData(prev => ({
-      ...prev,
-      permissions: prev.permissions.includes(permissionId)
-        ? prev.permissions.filter(p => p !== permissionId)
-        : [...prev.permissions, permissionId]
-    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -147,7 +125,6 @@ const EmployeesManagement: React.FC = () => {
       admissionDate: '',
       salary: '',
       workSchedule: '',
-      permissions: [],
       observations: ''
     });
   };
@@ -187,7 +164,7 @@ const EmployeesManagement: React.FC = () => {
         </div>
         <h3 className="text-2xl font-bold text-gray-900 mb-3">Cadastrar Novo Funcionário</h3>
         <p className="text-gray-600">
-          Registre informações do funcionário e defina permissões de acesso
+          Registre informações do funcionário
         </p>
       </div>
 
@@ -371,33 +348,6 @@ const EmployeesManagement: React.FC = () => {
           </div>
         </div>
 
-        {/* Permissões de Acesso */}
-        <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
-          <div className="flex items-center space-x-2 mb-6">
-            <Shield className="w-5 h-5 text-green-600" />
-            <h4 className="text-xl font-semibold text-gray-900">Permissões de Acesso</h4>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {permissionsList.map((permission) => (
-              <div key={permission.id} className="bg-white rounded-xl p-4 border border-gray-100">
-                <label className="flex items-start space-x-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={formData.permissions.includes(permission.id)}
-                    onChange={() => handlePermissionChange(permission.id)}
-                    className="mt-1 w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
-                  />
-                  <div>
-                    <div className="font-medium text-gray-900">{permission.label}</div>
-                    <div className="text-sm text-gray-500">{permission.description}</div>
-                  </div>
-                </label>
-              </div>
-            ))}
-          </div>
-        </div>
-
         {/* Observações */}
         <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
           <div className="flex items-center space-x-2 mb-6">
@@ -543,26 +493,6 @@ const EmployeesManagement: React.FC = () => {
                 <button className="text-red-600 hover:text-red-900 p-1 rounded">
                   <Trash2 className="w-4 h-4" />
                 </button>
-              </div>
-            </div>
-
-            {/* Permissions Preview */}
-            <div className="mt-4 pt-4 border-t border-gray-100">
-              <div className="flex items-center space-x-2 mb-2">
-                <Shield className="w-4 h-4 text-gray-400" />
-                <span className="text-sm font-medium text-gray-700">Permissões</span>
-              </div>
-              <div className="flex flex-wrap gap-1">
-                {employee.permissions.slice(0, 3).map((permission) => (
-                  <span key={permission} className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">
-                    {permissionsList.find(p => p.id === permission)?.label}
-                  </span>
-                ))}
-                {employee.permissions.length > 3 && (
-                  <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-                    +{employee.permissions.length - 3} mais
-                  </span>
-                )}
               </div>
             </div>
           </div>

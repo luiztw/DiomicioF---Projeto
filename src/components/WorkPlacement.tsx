@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Briefcase, Building, Phone, Calendar, CheckCircle } from 'lucide-react';
+import { Briefcase, CheckCircle } from 'lucide-react';
 
 const WorkPlacement: React.FC = () => {
   const [selectedUser, setSelectedUser] = useState('');
@@ -24,36 +24,6 @@ const WorkPlacement: React.FC = () => {
     { value: 'Desligado', color: 'bg-red-500' }
   ];
 
-  const placedUsers = [
-    {
-      id: 1,
-      name: 'Ana Costa Ferreira',
-      company: 'Supermercado Central',
-      position: 'Auxiliar de Limpeza',
-      status: 'Ativo',
-      admissionDate: '2024-01-10',
-      hrContact: 'Sandra Oliveira'
-    },
-    {
-      id: 2,
-      name: 'Carlos Eduardo',
-      company: 'Padaria São José',
-      position: 'Auxiliar de Produção',
-      status: 'Em Experiência',
-      admissionDate: '2024-01-20',
-      hrContact: 'Roberto Silva'
-    },
-    {
-      id: 3,
-      name: 'José Santos',
-      company: 'Loja de Roupas Fashion',
-      position: 'Organizador de Estoque',
-      status: 'Desligado',
-      admissionDate: '2023-11-15',
-      hrContact: 'Maria Fernandes'
-    }
-  ];
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Encaminhamento registrado:', {
@@ -66,15 +36,6 @@ const WorkPlacement: React.FC = () => {
       expectedEndDate,
       status
     });
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Ativo': return 'bg-green-100 text-green-800';
-      case 'Em Experiência': return 'bg-yellow-100 text-yellow-800';
-      case 'Desligado': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
   };
 
   return (
@@ -208,52 +169,6 @@ const WorkPlacement: React.FC = () => {
             </button>
           </div>
         </form>
-      </div>
-
-      {/* Lista de Encaminhados */}
-      <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
-        <div className="flex items-center space-x-2 mb-6">
-          <Building className="w-5 h-5 text-red-600" />
-          <h3 className="text-xl font-semibold text-gray-900">Usuários Encaminhados</h3>
-        </div>
-        
-        <div className="space-y-4">
-          {placedUsers.map((user) => (
-            <div key={user.id} className="bg-white rounded-xl p-4 border border-gray-100">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-3 mb-2">
-                    <h4 className="font-semibold text-gray-900">{user.name}</h4>
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(user.status)}`}>
-                      {user.status}
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-gray-600">
-                    <div className="flex items-center space-x-1">
-                      <Building className="w-4 h-4" />
-                      <span>{user.company}</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <Briefcase className="w-4 h-4" />
-                      <span>{user.position}</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <Calendar className="w-4 h-4" />
-                      <span>{new Date(user.admissionDate).toLocaleDateString('pt-BR')}</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <Phone className="w-4 h-4" />
-                      <span>{user.hrContact}</span>
-                    </div>
-                  </div>
-                </div>
-                <button className="bg-red-600 text-white rounded-lg px-4 py-2 hover:bg-red-700 transition-colors text-sm">
-                  Detalhes
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
       </div>
     </div>
   );

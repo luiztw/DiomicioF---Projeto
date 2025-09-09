@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { Building, Plus, Search, Filter, Eye, Edit, Trash2, Phone, Mail, MapPin, Users, Calendar } from 'lucide-react';
+import { Building, Plus, Search, Filter, Edit, Trash2, Phone, Mail, MapPin, Users, Calendar, X } from 'lucide-react';
 
 const CompaniesManagement: React.FC = () => {
   const [activeView, setActiveView] = useState('list');
   const [searchTerm, setSearchTerm] = useState('');
   const [sectorFilter, setSectorFilter] = useState('all');
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingCompany, setEditingCompany] = useState<any>(null);
   const [formData, setFormData] = useState({
     name: '',
     cnpj: '',
@@ -82,6 +84,63 @@ const CompaniesManagement: React.FC = () => {
     console.log('Empresa cadastrada:', formData);
     setActiveView('list');
     // Reset form
+    setFormData({
+      name: '',
+      cnpj: '',
+      sector: '',
+      address: '',
+      phone: '',
+      email: '',
+      hrContact: '',
+      hrPhone: '',
+      hrEmail: '',
+      availablePositions: '',
+      observations: ''
+    });
+  };
+
+  const handleEditCompany = (company: any) => {
+    setEditingCompany(company);
+    setFormData({
+      name: company.name,
+      cnpj: company.cnpj,
+      sector: company.sector,
+      address: company.address,
+      phone: company.phone,
+      email: company.email,
+      hrContact: company.hrContact,
+      hrPhone: company.hrPhone,
+      hrEmail: company.hrEmail,
+      availablePositions: '',
+      observations: ''
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateCompany = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log('Empresa atualizada:', { id: editingCompany.id, ...formData });
+    setIsEditModalOpen(false);
+    setEditingCompany(null);
+    // Reset form
+    setFormData({
+      name: '',
+      cnpj: '',
+      sector: '',
+      address: '',
+      phone: '',
+      email: '',
+      hrContact: '',
+      hrPhone: '',
+      hrEmail: '',
+      availablePositions: '',
+      observations: ''
+    });
+  };
+
+  const closeEditModal = () => {
+    setIsEditModalOpen(false);
+    setEditingCompany(null);
     setFormData({
       name: '',
       cnpj: '',
@@ -399,7 +458,7 @@ const CompaniesManagement: React.FC = () => {
               <p className="text-sm text-gray-500">{company.hrPhone}</p>
             </div>
 
-            <div className="grid grid-cols-3 gap-4 mb-4">
+            <div className="grid grid-cols-2 gap-4 mb-4">
               <div className="text-center">
                 <div className="text-lg font-semibold text-green-600">{company.activeUsers}</div>
                 <div className="text-xs text-gray-500">Ativos</div>
@@ -408,29 +467,20 @@ const CompaniesManagement: React.FC = () => {
                 <div className="text-lg font-semibold text-blue-600">{company.totalHired}</div>
                 <div className="text-xs text-gray-500">Total</div>
               </div>
-              <div className="text-center">
-                <div className="text-xs text-gray-900 font-medium">
-                  {new Date(company.lastContact).toLocaleDateString('pt-BR')}
-                </div>
-                <div className="text-xs text-gray-500">Último contato</div>
-              </div>
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-end">
               <div className="flex items-center space-x-2">
-                <button className="text-blue-600 hover:text-blue-900 p-1 rounded">
-                  <Eye className="w-4 h-4" />
-                </button>
-                <button className="text-green-600 hover:text-green-900 p-1 rounded">
+                <button 
+                  onClick={() => handleEditCompany(company)}
+                  className="text-green-600 hover:text-green-900 p-1 rounded"
+                >
                   <Edit className="w-4 h-4" />
                 </button>
                 <button className="text-red-600 hover:text-red-900 p-1 rounded">
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
-              <button className="bg-green-600 text-white rounded-lg px-3 py-1 hover:bg-green-700 transition-colors text-sm">
-                Contatar
-              </button>
             </div>
           </div>
         ))}
@@ -446,6 +496,194 @@ const CompaniesManagement: React.FC = () => {
     <div className="space-y-8">
       {/* Content */}
       {renderContent()}
+      
+      {/* Modal de Edição */}
+      {isEditModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              {/* Header do Modal */}
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-600 to-green-500 rounded-full flex items-center justify-center">
+                    <Edit className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-900">Editar Empresa</h3>
+                    <p className="text-gray-600">Atualize as informações da empresa</p>
+                  </div>
+                </div>
+                <button
+                  onClick={closeEditModal}
+                  className="text-gray-400 hover:text-gray-600 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              {/* Formulário de Edição */}
+              <form onSubmit={handleUpdateCompany} className="space-y-8">
+                {/* Informações da Empresa */}
+                <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
+                  <div className="flex items-center space-x-2 mb-6">
+                    <Building className="w-5 h-5 text-green-600" />
+                    <h4 className="text-xl font-semibold text-gray-900">Informações da Empresa</h4>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Nome da Empresa</label>
+                      <input
+                        type="text"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
+                        placeholder="Digite o nome da empresa"
+                        required
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">CNPJ</label>
+                      <input
+                        type="text"
+                        name="cnpj"
+                        value={formData.cnpj}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
+                        placeholder="00.000.000/0000-00"
+                        required
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Setor</label>
+                      <select
+                        name="sector"
+                        value={formData.sector}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
+                        required
+                      >
+                        <option value="">Selecione o setor</option>
+                        {sectors.map(sector => (
+                          <option key={sector} value={sector}>{sector}</option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Telefone</label>
+                      <input
+                        type="tel"
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
+                        placeholder="(00) 0000-0000"
+                        required
+                      />
+                    </div>
+                    
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Endereço Completo</label>
+                      <input
+                        type="text"
+                        name="address"
+                        value={formData.address}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
+                        placeholder="Rua, número, bairro, cidade, CEP"
+                        required
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">E-mail</label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
+                        placeholder="contato@empresa.com.br"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Contato RH */}
+                <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
+                  <div className="flex items-center space-x-2 mb-6">
+                    <Users className="w-5 h-5 text-blue-600" />
+                    <h4 className="text-xl font-semibold text-gray-900">Contato do RH</h4>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Nome do Responsável</label>
+                      <input
+                        type="text"
+                        name="hrContact"
+                        value={formData.hrContact}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                        placeholder="Nome do responsável pelo RH"
+                        required
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Telefone do RH</label>
+                      <input
+                        type="tel"
+                        name="hrPhone"
+                        value={formData.hrPhone}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                        placeholder="(00) 0000-0000"
+                        required
+                      />
+                    </div>
+                    
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">E-mail do RH</label>
+                      <input
+                        type="email"
+                        name="hrEmail"
+                        value={formData.hrEmail}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                        placeholder="rh@empresa.com.br"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex space-x-4">
+                  <button
+                    type="submit"
+                    className="flex-1 bg-green-600 text-white rounded-xl py-3 px-6 hover:bg-green-700 transition-colors flex items-center justify-center space-x-2"
+                  >
+                    <Edit className="w-5 h-5" />
+                    <span>Atualizar Empresa</span>
+                  </button>
+                  
+                  <button
+                    type="button"
+                    onClick={closeEditModal}
+                    className="bg-gray-600 text-white rounded-xl py-3 px-6 hover:bg-gray-700 transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

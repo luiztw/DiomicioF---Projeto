@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users, Building, TrendingUp, Clock, CheckCircle, AlertTriangle, Calendar, FileText, UserCheck } from 'lucide-react';
+import { Users, Building, Clock, CheckCircle, UserCheck } from 'lucide-react';
 
 const Dashboard: React.FC = () => {
   const stats = [
@@ -35,74 +35,6 @@ const Dashboard: React.FC = () => {
     }
   ];
 
-  const recentActivities = [
-    {
-      id: 1,
-      type: 'user_registered',
-      message: 'Novo usuário cadastrado: Maria Silva Santos',
-      time: '2 horas atrás',
-      icon: Users,
-      color: 'text-blue-600'
-    },
-    {
-      id: 2,
-      type: 'evaluation',
-      message: '1ª Avaliação concluída para João Pedro Lima',
-      time: '4 horas atrás',
-      icon: FileText,
-      color: 'text-green-600'
-    },
-    {
-      id: 3,
-      type: 'placement',
-      message: 'Ana Costa encaminhada para Supermercado Central',
-      time: '1 dia atrás',
-      icon: TrendingUp,
-      color: 'text-purple-600'
-    },
-    {
-      id: 4,
-      type: 'visit',
-      message: 'Visita de acompanhamento realizada na Padaria São José',
-      time: '2 dias atrás',
-      icon: Calendar,
-      color: 'text-red-600'
-    }
-  ];
-
-  const upcomingTasks = [
-    {
-      id: 1,
-      task: '2ª Avaliação - Carlos Eduardo',
-      dueDate: 'Hoje',
-      priority: 'high',
-      type: 'evaluation'
-    },
-    {
-      id: 2,
-      task: 'Entrevista com pais - Maria Silva',
-      dueDate: 'Amanhã',
-      priority: 'medium',
-      type: 'interview'
-    },
-    {
-      id: 3,
-      task: 'Visita de acompanhamento - Loja Fashion',
-      dueDate: '3 dias',
-      priority: 'low',
-      type: 'visit'
-    }
-  ];
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'bg-red-100 text-red-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'low': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -131,52 +63,6 @@ const Dashboard: React.FC = () => {
             </div>
           );
         })}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Recent Activities */}
-        <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-          <div className="flex items-center space-x-2 mb-6">
-            <TrendingUp className="w-5 h-5 text-blue-600" />
-            <h3 className="text-xl font-semibold text-gray-900">Atividades Recentes</h3>
-          </div>
-          
-          <div className="space-y-4">
-            {recentActivities.map((activity) => {
-              const Icon = activity.icon;
-              return (
-                <div key={activity.id} className="flex items-start space-x-3 p-3 rounded-xl hover:bg-gray-50 transition-colors">
-                  <div className="flex-shrink-0">
-                    <Icon className={`w-5 h-5 ${activity.color}`} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900">{activity.message}</p>
-                    <p className="text-xs text-gray-500">{activity.time}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Upcoming Tasks */}
-        <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-          <div className="flex items-center space-x-2 mb-6">
-            <AlertTriangle className="w-5 h-5 text-red-600" />
-            <h3 className="text-xl font-semibold text-gray-900">Tarefas Pendentes</h3>
-          </div>
-          
-          <div className="space-y-4">
-            {upcomingTasks.map((task) => (
-              <div key={task.id} className="flex items-center justify-between p-3 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors">
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900">{task.task}</p>
-                  <p className="text-xs text-gray-500">Prazo: {task.dueDate}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
     </div>
   );

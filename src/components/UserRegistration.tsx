@@ -1,11 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, Phone, FileText, Save, Plus } from 'lucide-react';
 
 type UserRegistrationProps = {
-  mode?: "edit" | "create"; // você pode expandir com mais modos se quiser
+  mode?: "edit" | "create";
+  user?: any;
+  onCancel?: () => void;
+  onSave?: (user: any) => void;
 };
 
-const UserRegistration: React.FC<UserRegistrationProps> = ({ mode = "create" }) => {
+const UserRegistration: React.FC<UserRegistrationProps> = ({ 
+  mode = "create", 
+  user = null, 
+  onCancel, 
+  onSave 
+}) => {
   const [formData, setFormData] = useState({
     fullName: '',
     birthDate: '',
@@ -20,6 +28,25 @@ const UserRegistration: React.FC<UserRegistrationProps> = ({ mode = "create" }) 
     observations: ''
   });
 
+  // Preencher formulário quando em modo de edição
+  useEffect(() => {
+    if (mode === "edit" && user) {
+      setFormData({
+        fullName: user.name || '',
+        birthDate: user.birthDate || '',
+        rg: user.rg || '',
+        cpf: user.cpf || '',
+        address: user.address || '',
+        phone: user.phone || '',
+        parentName: user.parentName || '',
+        parentPhone: user.parentPhone || '',
+        emergencyContact: user.emergencyContact || '',
+        admissionDate: user.admissionDate || '',
+        observations: user.observations || ''
+      });
+    }
+  }, [mode, user]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -27,8 +54,12 @@ const UserRegistration: React.FC<UserRegistrationProps> = ({ mode = "create" }) 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Dados do usuário:', formData);
-    // Aqui seria feita a integração com o backend
+    if (mode === "edit" && onSave) {
+      onSave({ ...user, ...formData, name: formData.fullName });
+    } else {
+      console.log('Dados do usuário:', formData);
+      // Aqui seria feita a integração com o backend
+    }
   };
 
   return (
@@ -209,16 +240,26 @@ const UserRegistration: React.FC<UserRegistrationProps> = ({ mode = "create" }) 
             className="flex-1 bg-red-600 text-white rounded-xl py-3 px-6 hover:bg-red-700 transition-colors flex items-center justify-center space-x-2"
           >
             <Save className="w-5 h-5" />
-            <span>Salvar Cadastro</span>
+            <span>{mode === "edit" ? "Atualizar Cadastro" : "Salvar Cadastro"}</span>
           </button>
           
-          <button
-            type="button"
-            className="bg-green-600 text-white rounded-xl py-3 px-6 hover:bg-green-700 transition-colors flex items-center space-x-2"
-          >
-            <Plus className="w-5 h-5" />
-            <span>Novo</span>
-          </button>
+          {mode === "edit" ? (
+            <button
+              type="button"
+              onClick={onCancel}
+              className="bg-gray-600 text-white rounded-xl py-3 px-6 hover:bg-gray-700 transition-colors"
+            >
+              Cancelar
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="bg-green-600 text-white rounded-xl py-3 px-6 hover:bg-green-700 transition-colors flex items-center space-x-2"
+            >
+              <Plus className="w-5 h-5" />
+              <span>Novo</span>
+            </button>
+          )}
         </div>
       </form>
     </div>
