@@ -28,6 +28,9 @@ const EmployeesManagement: React.FC = () => {
         confirmPassword: ''
     });
     const [passwordError, setPasswordError] = useState('');
+    const [selectedEmployee, setSelectedEmployee] = useState<Funcionario | null>(null);
+    const [showViewModal, setShowViewModal] = useState(false);
+    const [editingEmployeeId, setEditingEmployeeId] = useState<number | null>(null);
 
     // Máscaras de input
     const phoneInputRef = useMask({ mask: '(__) _____-____', replacement: { _: /\d/ } });
@@ -130,15 +133,17 @@ const EmployeesManagement: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Validação de senha
-        if (formData.password !== formData.confirmPassword) {
-            setPasswordError('As senhas não coincidem!');
-            return;
-        }
+        // Validação de senha apenas para novos cadastros ou quando a senha for alterada
+        if (!editingEmployeeId || formData.password) {
+            if (formData.password !== formData.confirmPassword) {
+                setPasswordError('As senhas não coincidem!');
+                return;
+            }
 
-        if (formData.password.length < 6) {
-            setPasswordError('A senha deve ter no mínimo 6 caracteres!');
-            return;
+            if (formData.password.length < 6) {
+                setPasswordError('A senha deve ter no mínimo 6 caracteres!');
+                return;
+            }
         }
 
         setPasswordError('');
@@ -156,8 +161,16 @@ const EmployeesManagement: React.FC = () => {
                 admissionDate: convertDateBRtoISO(funcionarioData.admissionDate)
             };
 
-            // Criar funcionário na API
-            await funcionarioService.create(funcionarioDataWithISODates);
+            if (editingEmployeeId) {
+                // Atualizar funcionário existente
+                await funcionarioService.update(editingEmployeeId, funcionarioDataWithISODates);
+                alert('Funcionário atualizado com sucesso!');
+                setEditingEmployeeId(null);
+            } else {
+                // Criar novo funcionário
+                await funcionarioService.create(funcionarioDataWithISODates);
+                alert('Funcionário cadastrado com sucesso!');
+            }
 
             // Recarregar lista de funcionários
             await loadEmployees();
@@ -186,6 +199,55 @@ const EmployeesManagement: React.FC = () => {
         } catch (error) {
             console.error('Erro ao cadastrar funcionário:', error);
             alert('Erro ao cadastrar funcionário. Verifique se o json-server está rodando.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Função para visualizar funcionário
+    const handleViewEmployee = (employee: Funcionario) => {
+        setSelectedEmployee(employee);
+        setShowViewModal(true);
+    };
+
+    // Função para editar funcionário
+    const handleEditEmployee = (employee: Funcionario) => {
+        setEditingEmployeeId(employee.id || null);
+        setFormData({
+            fullName: employee.fullName,
+            email: employee.email,
+            phone: employee.phone,
+            cpf: employee.cpf,
+            rg: employee.rg,
+            birthDate: employee.birthDate,
+            address: employee.address,
+            role: employee.role,
+            department: employee.department,
+            admissionDate: employee.admissionDate,
+            salary: employee.salary,
+            workSchedule: employee.workSchedule,
+            observations: employee.observations,
+            password: '',
+            confirmPassword: ''
+        });
+        setActiveView('register');
+    };
+
+    // Função para excluir funcionário
+    const handleDeleteEmployee = async (id: number | undefined) => {
+        if (!id) return;
+
+        const confirmDelete = window.confirm('Tem certeza que deseja excluir este funcionário?');
+        if (!confirmDelete) return;
+
+        try {
+            setLoading(true);
+            await funcionarioService.delete(id);
+            await loadEmployees();
+            alert('Funcionário excluído com sucesso!');
+        } catch (error) {
+            console.error('Erro ao excluir funcionário:', error);
+            alert('Erro ao excluir funcionário. Tente novamente.');
         } finally {
             setLoading(false);
         }
@@ -221,12 +283,14 @@ const EmployeesManagement: React.FC = () => {
     const renderEmployeeForm = () => (
         <div className="space-y-8">
             <div className="text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Plus className="w-8 h-8 text-white" />
+                <div className={`w-16 h-16 bg-gradient-to-br ${editingEmployeeId ? 'from-green-600 to-green-500' : 'from-purple-600 to-purple-500'} rounded-full flex items-center justify-center mx-auto mb-4`}>
+                    {editingEmployeeId ? <Edit className="w-8 h-8 text-white" /> : <Plus className="w-8 h-8 text-white" />}
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-3">Cadastrar Novo Funcionário</h3>
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                    {editingEmployeeId ? 'Editar Funcionário' : 'Cadastrar Novo Funcionário'}
+                </h3>
                 <p className="text-gray-600">
-                    Registre informações do funcionário
+                    {editingEmployeeId ? 'Atualize as informações do funcionário' : 'Registre informações do funcionário'}
                 </p>
             </div>
 
@@ -481,15 +545,35 @@ const EmployeesManagement: React.FC = () => {
                 <div className="flex space-x-4">
                     <button
                         type="submit"
-                        className="flex-1 bg-purple-600 text-white rounded-xl py-3 px-6 hover:bg-purple-700 transition-colors flex items-center justify-center space-x-2"
+                        className={`flex-1 ${editingEmployeeId ? 'bg-green-600 hover:bg-green-700' : 'bg-purple-600 hover:bg-purple-700'} text-white rounded-xl py-3 px-6 transition-colors flex items-center justify-center space-x-2`}
                     >
-                        <UserCheck className="w-5 h-5" />
-                        <span>Cadastrar Funcionário</span>
+                        {editingEmployeeId ? <Edit className="w-5 h-5" /> : <UserCheck className="w-5 h-5" />}
+                        <span>{editingEmployeeId ? 'Atualizar Funcionário' : 'Cadastrar Funcionário'}</span>
                     </button>
 
                     <button
                         type="button"
-                        onClick={() => setActiveView('list')}
+                        onClick={() => {
+                            setActiveView('list');
+                            setEditingEmployeeId(null);
+                            setFormData({
+                                fullName: '',
+                                email: '',
+                                phone: '',
+                                cpf: '',
+                                rg: '',
+                                birthDate: '',
+                                address: '',
+                                role: '',
+                                department: '',
+                                admissionDate: '',
+                                salary: '',
+                                workSchedule: '',
+                                observations: '',
+                                password: '',
+                                confirmPassword: ''
+                            });
+                        }}
                         className="bg-gray-600 text-white rounded-xl py-3 px-6 hover:bg-gray-700 transition-colors"
                     >
                         Cancelar
@@ -604,13 +688,25 @@ const EmployeesManagement: React.FC = () => {
                                 Último acesso: {employee.lastLogin}
                             </div>
                             <div className="flex items-center space-x-2">
-                                <button className="text-blue-600 hover:text-blue-900 p-1 rounded">
+                                <button
+                                    onClick={() => handleViewEmployee(employee)}
+                                    className="text-blue-600 hover:text-blue-900 p-1 rounded"
+                                    title="Visualizar"
+                                >
                                     <Eye className="w-4 h-4" />
                                 </button>
-                                <button className="text-green-600 hover:text-green-900 p-1 rounded">
+                                <button
+                                    onClick={() => handleEditEmployee(employee)}
+                                    className="text-green-600 hover:text-green-900 p-1 rounded"
+                                    title="Editar"
+                                >
                                     <Edit className="w-4 h-4" />
                                 </button>
-                                <button className="text-red-600 hover:text-red-900 p-1 rounded">
+                                <button
+                                    onClick={() => handleDeleteEmployee(employee.id)}
+                                    className="text-red-600 hover:text-red-900 p-1 rounded"
+                                    title="Excluir"
+                                >
                                     <Trash2 className="w-4 h-4" />
                                 </button>
                             </div>
@@ -621,6 +717,149 @@ const EmployeesManagement: React.FC = () => {
         </div>
     );
 
+    // Modal de visualização
+    const renderViewModal = () => {
+        if (!showViewModal || !selectedEmployee) return null;
+
+        return (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] flex flex-col">
+                    {/* Header Sticky */}
+                    <div className="p-6 border-b border-gray-100 bg-white rounded-t-2xl sticky top-0 z-10">
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-2xl font-bold text-gray-900">Detalhes do Funcionário</h3>
+                            <button
+                                onClick={() => {
+                                    setShowViewModal(false);
+                                    setSelectedEmployee(null);
+                                }}
+                                className="text-gray-400 hover:text-gray-600"
+                            >
+                                <span className="text-2xl">&times;</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Conteúdo com scroll */}
+                    <div className="p-6 space-y-6 overflow-y-auto flex-1">
+                        {/* Informações Pessoais */}
+                        <div>
+                            <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                                <UserCheck className="w-5 h-5 mr-2 text-purple-600" />
+                                Informações Pessoais
+                            </h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-sm font-medium text-gray-500">Nome Completo</label>
+                                    <p className="text-gray-900">{selectedEmployee.fullName}</p>
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium text-gray-500">E-mail</label>
+                                    <p className="text-gray-900">{selectedEmployee.email}</p>
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium text-gray-500">Telefone</label>
+                                    <p className="text-gray-900">{selectedEmployee.phone}</p>
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium text-gray-500">CPF</label>
+                                    <p className="text-gray-900">{selectedEmployee.cpf}</p>
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium text-gray-500">RG</label>
+                                    <p className="text-gray-900">{selectedEmployee.rg}</p>
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium text-gray-500">Data de Nascimento</label>
+                                    <p className="text-gray-900">{selectedEmployee.birthDate}</p>
+                                </div>
+                                <div className="md:col-span-2">
+                                    <label className="text-sm font-medium text-gray-500">Endereço</label>
+                                    <p className="text-gray-900">{selectedEmployee.address}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Informações Profissionais */}
+                        <div>
+                            <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                                <Award className="w-5 h-5 mr-2 text-blue-600" />
+                                Informações Profissionais
+                            </h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-sm font-medium text-gray-500">Cargo</label>
+                                    <p className="text-gray-900">{selectedEmployee.role}</p>
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium text-gray-500">Departamento</label>
+                                    <p className="text-gray-900">{selectedEmployee.department}</p>
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium text-gray-500">Data de Admissão</label>
+                                    <p className="text-gray-900">{selectedEmployee.admissionDate}</p>
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium text-gray-500">Horário de Trabalho</label>
+                                    <p className="text-gray-900">{selectedEmployee.workSchedule}</p>
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium text-gray-500">Salário</label>
+                                    <p className="text-gray-900">{selectedEmployee.salary}</p>
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium text-gray-500">Status</label>
+                                    <p className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(selectedEmployee.status || 'Ativo')}`}>
+                                        {selectedEmployee.status || 'Ativo'}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Observações */}
+                        {selectedEmployee.observations && (
+                            <div>
+                                <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                                    <Calendar className="w-5 h-5 mr-2 text-purple-600" />
+                                    Observações
+                                </h4>
+                                <p className="text-gray-900">{selectedEmployee.observations}</p>
+                            </div>
+                        )}
+
+                        {/* Estatísticas */}
+                        <div>
+                            <h4 className="text-lg font-semibold text-gray-900 mb-4">Estatísticas</h4>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="bg-blue-50 rounded-xl p-4 text-center">
+                                    <div className="text-2xl font-bold text-blue-600">{selectedEmployee.evaluationsCount || 0}</div>
+                                    <div className="text-sm text-gray-600">Avaliações</div>
+                                </div>
+                                <div className="bg-green-50 rounded-xl p-4 text-center">
+                                    <div className="text-2xl font-bold text-green-600">{selectedEmployee.visitsCount || 0}</div>
+                                    <div className="text-sm text-gray-600">Visitas</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Footer Sticky */}
+                    <div className="p-6 border-t border-gray-100 bg-white rounded-b-2xl sticky bottom-0 z-10">
+                        <button
+                            onClick={() => {
+                                setShowViewModal(false);
+                                setSelectedEmployee(null);
+                            }}
+                            className="w-full bg-gray-600 text-white rounded-xl py-3 px-6 hover:bg-gray-700 transition-colors"
+                        >
+                            Fechar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
     const renderContent = () => {
         return activeView === 'register' ? renderEmployeeForm() : renderEmployeesList();
     };
@@ -629,6 +868,9 @@ const EmployeesManagement: React.FC = () => {
         <div className="space-y-8">
             {/* Content */}
             {renderContent()}
+
+            {/* Modal de Visualização */}
+            {renderViewModal()}
         </div>
     );
 };

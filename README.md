@@ -61,11 +61,14 @@ O arquivo [db.json](db.json) contém os dados iniciais com 4 funcionários de ex
 
 - ✅ Listagem de funcionários com busca e filtro por cargo
 - ✅ Cadastro de novos funcionários
-- ✅ Integração com json-server via API REST
+- ✅ Visualização detalhada de funcionários (modal)
+- ✅ Edição de funcionários existentes
+- ✅ Exclusão de funcionários com confirmação
+- ✅ Integração com json-server via API REST (GET, POST, PATCH, DELETE)
 - ✅ Validação de formulário
 - ✅ Estados de loading
 - ✅ Tratamento de erros
-- ✅ Máscaras de input (Telefone e CPF) usando @react-input/mask
+- ✅ Máscaras de input (Telefone, CPF, Datas e Salário) usando @react-input/mask
 
 ### Máscaras de Input
 
@@ -80,3 +83,23 @@ O projeto utiliza a biblioteca `@react-input/mask` para aplicar máscaras autom�
 As máscaras são aplicadas automaticamente durante a digitação, facilitando a entrada de dados no formato correto.
 
 **Formato de Datas**: As datas são exibidas no formato brasileiro (DD/MM/AAAA) na interface, mas são armazenadas no formato ISO (AAAA-MM-DD) no banco de dados para garantir compatibilidade.
+
+### Ações do Card de Funcionário
+
+Cada card de funcionário possui três botões de ação:
+
+1. **Visualizar (ícone de olho - azul)**
+   - Abre um modal com todos os detalhes do funcionário
+   - Exibe informações pessoais, profissionais, observações e estatísticas
+   - Modo somente leitura
+
+2. **Editar (ícone de lápis - verde)**
+   - Carrega os dados do funcionário no formulário
+   - Permite atualizar todas as informações
+   - O título do formulário muda para "Editar Funcionário"
+   - Botão de submissão muda para "Atualizar Funcionário"
+
+3. **Excluir (ícone de lixeira - vermelho)**
+   - Solicita confirmação antes de excluir
+   - Remove o funcionário do sistema permanentemente
+   - Atualiza a lista automaticamente após exclusão
