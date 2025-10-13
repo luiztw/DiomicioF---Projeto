@@ -23,7 +23,7 @@ const CompaniesManagement: React.FC = () => {
         hrContact: '',
         hrPhone: '',
         hrEmail: '',
-        availablePositions: '',
+        availablePositions: [''],
         observations: ''
     });
 
@@ -57,6 +57,30 @@ const CompaniesManagement: React.FC = () => {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
+    // Função para adicionar nova vaga
+    const handleAddPosition = () => {
+        setFormData(prev => ({
+            ...prev,
+            availablePositions: [...prev.availablePositions, '']
+        }));
+    };
+
+    // Função para remover vaga
+    const handleRemovePosition = (index: number) => {
+        setFormData(prev => ({
+            ...prev,
+            availablePositions: prev.availablePositions.filter((_, i) => i !== index)
+        }));
+    };
+
+    // Função para atualizar vaga específica
+    const handlePositionChange = (index: number, value: string) => {
+        setFormData(prev => ({
+            ...prev,
+            availablePositions: prev.availablePositions.map((pos, i) => i === index ? value : pos)
+        }));
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -88,7 +112,7 @@ const CompaniesManagement: React.FC = () => {
                 hrContact: '',
                 hrPhone: '',
                 hrEmail: '',
-                availablePositions: '',
+                availablePositions: [''],
                 observations: ''
             });
 
@@ -326,15 +350,40 @@ const CompaniesManagement: React.FC = () => {
 
                     <div className="space-y-6">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Vagas Disponíveis</label>
-                            <input
-                                type="text"
-                                name="availablePositions"
-                                value={formData.availablePositions}
-                                onChange={handleInputChange}
-                                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
-                                placeholder="Ex: Auxiliar de Limpeza, Organizador de Estoque"
-                            />
+                            <div className="flex items-center justify-between mb-2">
+                                <label className="block text-sm font-medium text-gray-700">Vagas Disponíveis</label>
+                                <button
+                                    type="button"
+                                    onClick={handleAddPosition}
+                                    className="flex items-center space-x-1 text-sm text-purple-600 hover:text-purple-700 font-medium"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                    <span>Adicionar Vaga</span>
+                                </button>
+                            </div>
+                            <div className="space-y-3">
+                                {formData.availablePositions.map((position, index) => (
+                                    <div key={index} className="flex items-center space-x-2">
+                                        <input
+                                            type="text"
+                                            value={position}
+                                            onChange={(e) => handlePositionChange(index, e.target.value)}
+                                            className="flex-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
+                                            placeholder={`Ex: ${index === 0 ? 'Auxiliar de Limpeza' : index === 1 ? 'Organizador de Estoque' : 'Nome da vaga'}`}
+                                        />
+                                        {formData.availablePositions.length > 1 && (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleRemovePosition(index)}
+                                                className="p-3 text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                                                title="Remover vaga"
+                                            >
+                                                <Trash2 className="w-5 h-5" />
+                                            </button>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
                         </div>
 
                         <div>
@@ -376,7 +425,7 @@ const CompaniesManagement: React.FC = () => {
                                 hrContact: '',
                                 hrPhone: '',
                                 hrEmail: '',
-                                availablePositions: '',
+                                availablePositions: [''],
                                 observations: ''
                             });
                         }}
@@ -607,13 +656,20 @@ const CompaniesManagement: React.FC = () => {
                         </div>
 
                         {/* Vagas Disponíveis */}
-                        {selectedCompany.availablePositions && (
+                        {selectedCompany.availablePositions && selectedCompany.availablePositions.length > 0 && (
                             <div>
                                 <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                                     <Calendar className="w-5 h-5 mr-2 text-purple-600" />
                                     Vagas Disponíveis
                                 </h4>
-                                <p className="text-gray-900">{selectedCompany.availablePositions}</p>
+                                <ul className="space-y-2">
+                                    {selectedCompany.availablePositions.map((position, index) => (
+                                        <li key={index} className="flex items-center text-gray-900">
+                                            <span className="w-2 h-2 bg-purple-600 rounded-full mr-3"></span>
+                                            {position}
+                                        </li>
+                                    ))}
+                                </ul>
                             </div>
                         )}
 

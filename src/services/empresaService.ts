@@ -11,7 +11,7 @@ export interface Empresa {
     hrContact: string;
     hrPhone: string;
     hrEmail: string;
-    availablePositions: string;
+    availablePositions: string[];
     observations: string;
     activeUsers?: number;
     totalHired?: number;
