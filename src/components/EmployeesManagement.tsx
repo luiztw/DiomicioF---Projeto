@@ -1,10 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UserCheck, Plus, Search, Filter, Eye, Edit, Trash2, Phone, Mail, Calendar, Award, Clock, Lock } from 'lucide-react';
+import { funcionarioService, Funcionario } from '../services/funcionarioService';
+// @ts-ignore
+import { useMask } from '@react-input/mask';
 
 const EmployeesManagement: React.FC = () => {
     const [activeView, setActiveView] = useState('list');
     const [searchTerm, setSearchTerm] = useState('');
     const [roleFilter, setRoleFilter] = useState('all');
+    const [employees, setEmployees] = useState<Funcionario[]>([]);
+    const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         fullName: '',
         email: '',
@@ -24,68 +29,72 @@ const EmployeesManagement: React.FC = () => {
     });
     const [passwordError, setPasswordError] = useState('');
 
-    const employees = [
-        {
-            id: 1,
-            fullName: 'Dr. Ana Paula Silva',
-            email: 'ana.silva@sistema.com.br',
-            phone: '(11) 99999-1111',
-            role: 'Coordenadora Geral',
-            department: 'Coordenação',
-            admissionDate: '2020-03-15',
-            status: 'Ativo',
-            permissions: ['admin', 'users', 'companies', 'reports'],
-            lastLogin: '2024-01-22 09:30',
-            workSchedule: '08:00 - 17:00',
-            evaluationsCount: 45,
-            visitsCount: 23
-        },
-        {
-            id: 2,
-            fullName: 'Prof. Carlos Eduardo Santos',
-            email: 'carlos.santos@sistema.com.br',
-            phone: '(11) 99999-2222',
-            role: 'Professor Avaliador',
-            department: 'Avaliação',
-            admissionDate: '2021-08-10',
-            status: 'Ativo',
-            permissions: ['users', 'evaluations'],
-            lastLogin: '2024-01-22 08:15',
-            workSchedule: '07:00 - 16:00',
-            evaluationsCount: 78,
-            visitsCount: 12
-        },
-        {
-            id: 3,
-            fullName: 'Maria Fernanda Costa',
-            email: 'maria.costa@sistema.com.br',
-            phone: '(11) 99999-3333',
-            role: 'Consultora de RH',
-            department: 'Recursos Humanos',
-            admissionDate: '2022-01-20',
-            status: 'Ativo',
-            permissions: ['companies', 'placements', 'followup'],
-            lastLogin: '2024-01-21 16:45',
-            workSchedule: '08:30 - 17:30',
-            evaluationsCount: 12,
-            visitsCount: 34
-        },
-        {
-            id: 4,
-            fullName: 'João Pedro Oliveira',
-            email: 'joao.oliveira@sistema.com.br',
-            phone: '(11) 99999-4444',
-            role: 'Assistente Administrativo',
-            department: 'Administrativo',
-            admissionDate: '2023-06-15',
-            status: 'Férias',
-            permissions: ['users', 'basic'],
-            lastLogin: '2024-01-15 17:00',
-            workSchedule: '08:00 - 17:00',
-            evaluationsCount: 8,
-            visitsCount: 5
+    // Máscaras de input
+    const phoneInputRef = useMask({ mask: '(__) _____-____', replacement: { _: /\d/ } });
+    const cpfInputRef = useMask({ mask: '___.___.___-__', replacement: { _: /\d/ } });
+    const birthDateInputRef = useMask({ mask: '__/__/____', replacement: { _: /\d/ } });
+    const admissionDateInputRef = useMask({ mask: '__/__/____', replacement: { _: /\d/ } });
+
+    // Função para formatar moeda brasileira
+    const formatCurrency = (value: string): string => {
+        // Remove tudo que não é dígito
+        const numbers = value.replace(/\D/g, '');
+
+        if (!numbers) return '';
+
+        // Converte para número e divide por 100 para obter centavos
+        const amount = parseFloat(numbers) / 100;
+
+        // Formata como moeda brasileira
+        return amount.toLocaleString('pt-BR', {
+            style: 'currency',
+            currency: 'BRL'
+        });
+    };
+
+    // Função para converter data brasileira (DD/MM/AAAA) para ISO (AAAA-MM-DD)
+    const convertDateBRtoISO = (dateBR: string): string => {
+        const parts = dateBR.split('/');
+        if (parts.length === 3) {
+            return `${parts[2]}-${parts[1]}-${parts[0]}`;
         }
-    ];
+        return dateBR;
+    };
+
+    // Função para converter data ISO (AAAA-MM-DD) para brasileira (DD/MM/AAAA)
+    const convertDateISOtoBR = (dateISO: string): string => {
+        const parts = dateISO.split('-');
+        if (parts.length === 3) {
+            return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+        return dateISO;
+    };
+
+    // Buscar funcionários ao carregar o componente
+    useEffect(() => {
+        loadEmployees();
+    }, []);
+
+    const loadEmployees = async () => {
+        try {
+            setLoading(true);
+            const data = await funcionarioService.getAll();
+
+            // Converte datas ISO para formato brasileiro na exibição
+            const dataWithBRDates = data.map(emp => ({
+                ...emp,
+                birthDate: emp.birthDate ? convertDateISOtoBR(emp.birthDate) : '',
+                admissionDate: emp.admissionDate ? convertDateISOtoBR(emp.admissionDate) : ''
+            }));
+
+            setEmployees(dataWithBRDates);
+        } catch (error) {
+            console.error('Erro ao carregar funcionários:', error);
+            alert('Erro ao carregar funcionários. Verifique se o json-server está rodando.');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const roles = [
         'Coordenador Geral',
@@ -107,10 +116,18 @@ const EmployeesManagement: React.FC = () => {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+
+        let formattedValue = value;
+
+        // Aplica formatação de moeda para o campo salary
+        if (name === 'salary') {
+            formattedValue = formatCurrency(value);
+        }
+
+        setFormData(prev => ({ ...prev, [name]: formattedValue }));
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         // Validação de senha
@@ -125,26 +142,53 @@ const EmployeesManagement: React.FC = () => {
         }
 
         setPasswordError('');
-        console.log('Funcionário cadastrado:', formData);
-        setActiveView('list');
-        // Reset form
-        setFormData({
-            fullName: '',
-            email: '',
-            phone: '',
-            cpf: '',
-            rg: '',
-            birthDate: '',
-            address: '',
-            role: '',
-            department: '',
-            admissionDate: '',
-            salary: '',
-            workSchedule: '',
-            observations: '',
-            password: '',
-            confirmPassword: ''
-        });
+
+        try {
+            setLoading(true);
+
+            // Remover confirmPassword antes de enviar
+            const { confirmPassword, ...funcionarioData } = formData;
+
+            // Converter datas de formato brasileiro para ISO antes de enviar
+            const funcionarioDataWithISODates = {
+                ...funcionarioData,
+                birthDate: convertDateBRtoISO(funcionarioData.birthDate),
+                admissionDate: convertDateBRtoISO(funcionarioData.admissionDate)
+            };
+
+            // Criar funcionário na API
+            await funcionarioService.create(funcionarioDataWithISODates);
+
+            // Recarregar lista de funcionários
+            await loadEmployees();
+
+            // Reset form
+            setFormData({
+                fullName: '',
+                email: '',
+                phone: '',
+                cpf: '',
+                rg: '',
+                birthDate: '',
+                address: '',
+                role: '',
+                department: '',
+                admissionDate: '',
+                salary: '',
+                workSchedule: '',
+                observations: '',
+                password: '',
+                confirmPassword: ''
+            });
+
+            setActiveView('list');
+            alert('Funcionário cadastrado com sucesso!');
+        } catch (error) {
+            console.error('Erro ao cadastrar funcionário:', error);
+            alert('Erro ao cadastrar funcionário. Verifique se o json-server está rodando.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const getStatusColor = (status: string) => {
@@ -224,6 +268,7 @@ const EmployeesManagement: React.FC = () => {
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">Telefone</label>
                             <input
+                                ref={phoneInputRef}
                                 type="tel"
                                 name="phone"
                                 value={formData.phone}
@@ -237,6 +282,7 @@ const EmployeesManagement: React.FC = () => {
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">CPF</label>
                             <input
+                                ref={cpfInputRef}
                                 type="text"
                                 name="cpf"
                                 value={formData.cpf}
@@ -263,11 +309,13 @@ const EmployeesManagement: React.FC = () => {
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">Data de Nascimento</label>
                             <input
-                                type="date"
+                                ref={birthDateInputRef}
+                                type="text"
                                 name="birthDate"
                                 value={formData.birthDate}
                                 onChange={handleInputChange}
                                 className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
+                                placeholder="DD/MM/AAAA"
                                 required
                             />
                         </div>
@@ -330,11 +378,13 @@ const EmployeesManagement: React.FC = () => {
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">Data de Admissão</label>
                             <input
-                                type="date"
+                                ref={admissionDateInputRef}
+                                type="text"
                                 name="admissionDate"
                                 value={formData.admissionDate}
                                 onChange={handleInputChange}
                                 className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                                placeholder="DD/MM/AAAA"
                                 required
                             />
                         </div>
@@ -451,8 +501,16 @@ const EmployeesManagement: React.FC = () => {
 
     const renderEmployeesList = () => (
         <div className="space-y-6">
+            {/* Loading State */}
+            {loading && (
+                <div className="text-center py-8">
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                    <p className="mt-2 text-gray-600">Carregando funcionários...</p>
+                </div>
+            )}
+
             {/* Search and Filters */}
-            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+            {!loading && <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
                     <div className="relative flex-1 max-w-md">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -489,10 +547,10 @@ const EmployeesManagement: React.FC = () => {
                         </button>
                     </div>
                 </div>
-            </div>
+            </div>}
 
             {/* Employees Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {!loading && <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {filteredEmployees.map((employee) => (
                     <div key={employee.id} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
                         <div className="flex items-start justify-between mb-4">
@@ -523,7 +581,7 @@ const EmployeesManagement: React.FC = () => {
                             </div>
                             <div className="flex items-center space-x-2 text-sm text-gray-600">
                                 <Calendar className="w-4 h-4" />
-                                <span>Admissão: {new Date(employee.admissionDate).toLocaleDateString('pt-BR')}</span>
+                                <span>Admissão: {employee.admissionDate ? new Date(employee.admissionDate).toLocaleDateString('pt-BR') : 'N/A'}</span>
                             </div>
                         </div>
 
@@ -559,7 +617,7 @@ const EmployeesManagement: React.FC = () => {
                         </div>
                     </div>
                 ))}
-            </div>
+            </div>}
         </div>
     );
 
