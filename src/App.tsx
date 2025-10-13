@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
-import { Users, Building, BarChart3, Menu, X, UserCheck } from 'lucide-react';
+import { Users, Building, BarChart3, Menu, X, UserCheck, LogOut } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import UsersManagement from './components/UsersManagement';
 import CompaniesManagement from './components/CompaniesManagement';
 import EmployeesManagement from './components/EmployeesManagement';
+import Login from './components/Login';
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUser, setCurrentUser] = useState('');
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -15,6 +18,21 @@ function App() {
     { id: 'companies', label: 'Empresas', icon: Building, color: 'text-green-600' },
     { id: 'employees', label: 'Funcionários', icon: UserCheck, color: 'text-purple-600' }
   ];
+
+  const handleLogin = (username: string, password: string) => {
+    // Aqui você pode adicionar a lógica de autenticação real
+    // Por enquanto, vamos simular uma autenticação básica
+    if (username && password) {
+      setIsAuthenticated(true);
+      setCurrentUser(username);
+    }
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setCurrentUser('');
+    setActiveTab('dashboard');
+  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -30,6 +48,11 @@ function App() {
         return <Dashboard />;
     }
   };
+
+  // Se não estiver autenticado, mostrar tela de login
+  if (!isAuthenticated) {
+    return <Login onLogin={handleLogin} />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -47,39 +70,67 @@ function App() {
               </div>
             </div>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden lg:flex space-x-1">
-              {tabs.map((tab) => {
-                const Icon = tab.icon;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center space-x-2 px-4 py-2 rounded-xl font-medium transition-all ${
-                      activeTab === tab.id
-                        ? 'bg-gray-100 text-gray-900 shadow-sm'
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                    }`}
-                  >
-                    <Icon className={`w-5 h-5 ${activeTab === tab.id ? tab.color : ''}`} />
-                    <span>{tab.label}</span>
-                  </button>
-                );
-              })}
-            </nav>
+            <div className="flex items-center space-x-4">
+              {/* User Info - Hidden on mobile */}
+              <div className="hidden md:flex items-center space-x-2 text-sm">
+                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                  <Users className="w-4 h-4 text-blue-600" />
+                </div>
+                <span className="text-gray-700 font-medium">{currentUser}</span>
+              </div>
 
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-            >
-              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
+              {/* Desktop Navigation */}
+              <nav className="hidden lg:flex space-x-1">
+                {tabs.map((tab) => {
+                  const Icon = tab.icon;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`flex items-center space-x-2 px-4 py-2 rounded-xl font-medium transition-all ${
+                        activeTab === tab.id
+                          ? 'bg-gray-100 text-gray-900 shadow-sm'
+                          : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                      }`}
+                    >
+                      <Icon className={`w-5 h-5 ${activeTab === tab.id ? tab.color : ''}`} />
+                      <span>{tab.label}</span>
+                    </button>
+                  );
+                })}
+              </nav>
+
+              {/* Logout Button */}
+              <button
+                onClick={handleLogout}
+                className="hidden lg:flex items-center space-x-2 px-4 py-2 rounded-xl font-medium text-red-600 hover:bg-red-50 transition-all"
+                title="Sair"
+              >
+                <LogOut className="w-5 h-5" />
+                <span>Sair</span>
+              </button>
+
+              {/* Mobile Menu Button */}
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="lg:hidden p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+              >
+                {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </button>
+            </div>
           </div>
 
           {/* Mobile Navigation */}
           {isMobileMenuOpen && (
             <div className="lg:hidden py-4 border-t border-gray-200">
+              {/* User Info - Mobile */}
+              <div className="flex items-center space-x-2 px-4 py-3 mb-2 bg-gray-50 rounded-xl">
+                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                  <Users className="w-4 h-4 text-blue-600" />
+                </div>
+                <span className="text-gray-700 font-medium">{currentUser}</span>
+              </div>
+
               <nav className="space-y-2">
                 {tabs.map((tab) => {
                   const Icon = tab.icon;
@@ -101,6 +152,18 @@ function App() {
                     </button>
                   );
                 })}
+
+                {/* Logout Button - Mobile */}
+                <button
+                  onClick={() => {
+                    handleLogout();
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-red-600 hover:bg-red-50 transition-all"
+                >
+                  <LogOut className="w-5 h-5" />
+                  <span>Sair</span>
+                </button>
               </nav>
             </div>
           )}
