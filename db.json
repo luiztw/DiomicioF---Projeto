@@ -125,5 +125,61 @@
       "evaluationsCount": 0,
       "visitsCount": 0
     }
+  ],
+  "empresas": [
+    {
+      "id": "1",
+      "name": "Supermercado Central",
+      "cnpj": "12.345.678/0001-90",
+      "sector": "Varejo",
+      "address": "Rua das Flores, 123 - Centro, São Paulo, SP",
+      "phone": "(11) 3333-1111",
+      "email": "contato@supercentral.com.br",
+      "hrContact": "Sandra Oliveira",
+      "hrPhone": "(11) 3333-1122",
+      "hrEmail": "rh@supercentral.com.br",
+      "availablePositions": "Auxiliar de Limpeza, Organizador de Estoque",
+      "observations": "Empresa com foco em inclusão social",
+      "activeUsers": 3,
+      "totalHired": 8,
+      "lastContact": "2024-01-20",
+      "status": "Ativo"
+    },
+    {
+      "id": "2",
+      "name": "Padaria São José",
+      "cnpj": "98.765.432/0001-10",
+      "sector": "Alimentação",
+      "address": "Av. Principal, 456 - Vila Nova, São Paulo, SP",
+      "phone": "(11) 4444-2222",
+      "email": "contato@padariasaojose.com.br",
+      "hrContact": "Roberto Silva",
+      "hrPhone": "(11) 4444-2233",
+      "hrEmail": "roberto@padariasaojose.com.br",
+      "availablePositions": "Padeiro, Atendente",
+      "observations": "Horário flexível, ambiente familiar",
+      "activeUsers": 2,
+      "totalHired": 5,
+      "lastContact": "2024-01-18",
+      "status": "Ativo"
+    },
+    {
+      "id": "3",
+      "name": "Loja Fashion Style",
+      "cnpj": "11.222.333/0001-44",
+      "sector": "Moda",
+      "address": "Shopping Center, Loja 45, São Paulo, SP",
+      "phone": "(11) 5555-3333",
+      "email": "contato@fashionstyle.com.br",
+      "hrContact": "Maria Fernandes",
+      "hrPhone": "(11) 5555-3344",
+      "hrEmail": "rh@fashionstyle.com.br",
+      "availablePositions": "Vendedor, Auxiliar de Estoque",
+      "observations": "Preferência para pessoas com experiência em vendas",
+      "activeUsers": 1,
+      "totalHired": 3,
+      "lastContact": "2024-01-15",
+      "status": "Inativo"
+    }
   ]
 }
