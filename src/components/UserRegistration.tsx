@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { User, Phone, FileText, Save, Plus, CheckCircle, AlertCircle } from 'lucide-react';
-import { usuarioService, Usuario } from '../services/usuarioService';
+import { Usuario } from '../services/usuarioService';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { createUsuario, updateUsuario, clearError } from '../store/slices/usuariosSlice';
 
 type UserRegistrationProps = {
   mode?: "edit" | "create";
@@ -15,6 +17,9 @@ const UserRegistration: React.FC<UserRegistrationProps> = ({
   onCancel,
   onSave
 }) => {
+  const dispatch = useAppDispatch();
+  const { loading, error } = useAppSelector((state) => state.usuarios);
+
   const [formData, setFormData] = useState({
     fullName: '',
     birthDate: '',
@@ -29,7 +34,6 @@ const UserRegistration: React.FC<UserRegistrationProps> = ({
     observations: ''
   });
 
-  const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   // Preencher formulário quando em modo de edição
@@ -51,11 +55,19 @@ const UserRegistration: React.FC<UserRegistrationProps> = ({
     }
   }, [mode, user]);
 
+  // Efeito para exibir erros do Redux
+  useEffect(() => {
+    if (error) {
+      setMessage({ type: 'error', text: error });
+    }
+  }, [error]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    // Limpar mensagem ao editar
+    // Limpar mensagens ao editar
     if (message) setMessage(null);
+    if (error) dispatch(clearError());
   };
 
   const validateForm = (): boolean => {
@@ -81,18 +93,18 @@ const UserRegistration: React.FC<UserRegistrationProps> = ({
       return;
     }
 
-    setLoading(true);
     setMessage(null);
+    dispatch(clearError());
 
     try {
       if (mode === "edit" && user?.id) {
-        const updatedUser = await usuarioService.update(user.id, formData);
+        const result = await dispatch(updateUsuario({ id: user.id, data: formData })).unwrap();
         setMessage({ type: 'success', text: 'Usuário atualizado com sucesso!' });
         if (onSave) {
-          onSave(updatedUser);
+          onSave(result);
         }
       } else {
-        const newUser = await usuarioService.create(formData);
+        await dispatch(createUsuario(formData)).unwrap();
         setMessage({ type: 'success', text: 'Usuário cadastrado com sucesso!' });
 
         // Limpar formulário após cadastro
@@ -119,8 +131,6 @@ const UserRegistration: React.FC<UserRegistrationProps> = ({
         type: 'error',
         text: mode === "edit" ? 'Erro ao atualizar usuário' : 'Erro ao cadastrar usuário'
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -139,6 +149,7 @@ const UserRegistration: React.FC<UserRegistrationProps> = ({
       observations: ''
     });
     setMessage(null);
+    dispatch(clearError());
   };
 
   return (

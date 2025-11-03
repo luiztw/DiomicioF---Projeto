@@ -1,17 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Plus, Search, Filter, Eye, Edit, Trash2, FileText, Calendar, Briefcase } from 'lucide-react';
+import { Users, Plus, Search, Filter, Eye, Edit, Trash2, FileText, Calendar, Briefcase, AlertCircle } from 'lucide-react';
 import UserRegistration from './UserRegistration';
 import TrialPeriod from './TrialPeriod';
 import ParentInterview from './ParentInterview';
 import WorkPlacement from './WorkPlacement';
 import FollowUp from './FollowUp';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { fetchUsuarios, deleteUsuario } from '../store/slices/usuariosSlice';
+import { Usuario } from '../services/usuarioService';
 
 const UsersManagement: React.FC = () => {
+    const dispatch = useAppDispatch();
+    const { usuarios, loading, error } = useAppSelector((state) => state.usuarios);
+
     const [activeView, setActiveView] = useState('list');
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
-    const [selectedUser, setSelectedUser] = useState<any>(null);
-    const [editUser, setEditUser] = useState<any>(null);
+    const [selectedUser, setSelectedUser] = useState<Usuario | null>(null);
+    const [editUser, setEditUser] = useState<Usuario | null>(null);
+
+    // Carregar usuários ao montar o componente
+    useEffect(() => {
+        dispatch(fetchUsuarios());
+    }, [dispatch]);
 
     // Travar o scroll do fundo quando modal está aberto
     useEffect(() => {
@@ -25,48 +36,6 @@ const UsersManagement: React.FC = () => {
         };
     }, [selectedUser, editUser]);
 
-    const users = [
-        {
-            id: 1,
-            name: 'Maria Silva Santos',
-            birthDate: '1995-03-15',
-            admissionDate: '2024-01-10',
-            status: 'Ativo',
-            company: 'Supermercado Central',
-            position: 'Auxiliar de Limpeza',
-            phone: '(11) 99999-1111',
-            parentName: 'José Silva',
-            evaluations: 2,
-            lastVisit: '2024-01-20'
-        },
-        {
-            id: 2,
-            name: 'João Pedro Lima',
-            birthDate: '1992-07-22',
-            admissionDate: '2024-01-15',
-            status: 'Em Experiência',
-            company: 'Padaria São José',
-            position: 'Auxiliar de Produção',
-            phone: '(11) 99999-2222',
-            parentName: 'Ana Lima',
-            evaluations: 1,
-            lastVisit: null
-        },
-        {
-            id: 3,
-            name: 'Ana Costa Ferreira',
-            birthDate: '1998-11-08',
-            admissionDate: '2023-12-05',
-            status: 'Aguardando',
-            company: null,
-            position: null,
-            phone: '(11) 99999-3333',
-            parentName: 'Carlos Costa',
-            evaluations: 2,
-            lastVisit: null
-        }
-    ];
-
     const menuItems = [
         { id: 'list', label: 'Lista de Usuários', icon: Users, color: 'text-blue-600' },
         { id: 'register', label: 'Cadastrar Usuário', icon: Plus, color: 'text-green-600' },
@@ -76,7 +45,7 @@ const UsersManagement: React.FC = () => {
         { id: 'followup', label: 'Acompanhamento', icon: Eye, color: 'text-teal-600' }
     ];
 
-    const getStatusColor = (status: string) => {
+    const getStatusColor = (status?: string) => {
         switch (status) {
             case 'Ativo': return 'bg-green-100 text-green-800';
             case 'Em Experiência': return 'bg-yellow-100 text-yellow-800';
@@ -86,8 +55,21 @@ const UsersManagement: React.FC = () => {
         }
     };
 
-    const filteredUsers = users.filter(user => {
-        const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const handleDelete = async (id: string) => {
+        if (window.confirm('Tem certeza que deseja excluir este usuário?')) {
+            try {
+                await dispatch(deleteUsuario(id)).unwrap();
+                // Recarregar lista após exclusão
+                dispatch(fetchUsuarios());
+            } catch (error) {
+                console.error('Erro ao excluir usuário:', error);
+                alert('Erro ao excluir usuário');
+            }
+        }
+    };
+
+    const filteredUsers = usuarios.filter((user: Usuario) => {
+        const matchesSearch = user.fullName.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesStatus = statusFilter === 'all' || user.status === statusFilter;
         return matchesSearch && matchesStatus;
     });
@@ -109,50 +91,60 @@ const UsersManagement: React.FC = () => {
                         <div>
                             <div className="mb-2">
                                 <span className="font-semibold text-gray-700">Nome:</span>
-                                <span className="ml-2 text-gray-900">{selectedUser.name}</span>
+                                <span className="ml-2 text-gray-900">{selectedUser.fullName}</span>
                             </div>
                             <div className="mb-2">
                                 <span className="font-semibold text-gray-700">Nascimento:</span>
-                                <span className="ml-2 text-gray-900">{selectedUser.birthDate}</span>
+                                <span className="ml-2 text-gray-900">{selectedUser.birthDate || '—'}</span>
                             </div>
                             <div className="mb-2">
                                 <span className="font-semibold text-gray-700">Admissão:</span>
-                                <span className="ml-2 text-gray-900">{selectedUser.admissionDate}</span>
+                                <span className="ml-2 text-gray-900">{selectedUser.admissionDate || '—'}</span>
                             </div>
                             <div className="mb-2">
                                 <span className="font-semibold text-gray-700">Status:</span>
                                 <span className={`ml-2 px-2 py-1 rounded ${getStatusColor(selectedUser.status)}`}>
-                                    {selectedUser.status}
+                                    {selectedUser.status || '—'}
                                 </span>
                             </div>
                             <div className="mb-2">
-                                <span className="font-semibold text-gray-700">Avaliações:</span>
-                                <span className="ml-2 text-gray-900">{selectedUser.evaluations}</span>
+                                <span className="font-semibold text-gray-700">CPF:</span>
+                                <span className="ml-2 text-gray-900">{selectedUser.cpf || '—'}</span>
+                            </div>
+                            <div className="mb-2">
+                                <span className="font-semibold text-gray-700">RG:</span>
+                                <span className="ml-2 text-gray-900">{selectedUser.rg || '—'}</span>
                             </div>
                         </div>
                         <div>
                             <div className="mb-2">
-                                <span className="font-semibold text-gray-700">Empresa:</span>
-                                <span className="ml-2 text-gray-900">{selectedUser.company || '—'}</span>
-                            </div>
-                            <div className="mb-2">
-                                <span className="font-semibold text-gray-700">Cargo:</span>
-                                <span className="ml-2 text-gray-900">{selectedUser.position || '—'}</span>
-                            </div>
-                            <div className="mb-2">
                                 <span className="font-semibold text-gray-700">Telefone:</span>
-                                <span className="ml-2 text-gray-900">{selectedUser.phone}</span>
+                                <span className="ml-2 text-gray-900">{selectedUser.phone || '—'}</span>
+                            </div>
+                            <div className="mb-2">
+                                <span className="font-semibold text-gray-700">Endereço:</span>
+                                <span className="ml-2 text-gray-900">{selectedUser.address || '—'}</span>
                             </div>
                             <div className="mb-2">
                                 <span className="font-semibold text-gray-700">Responsável:</span>
-                                <span className="ml-2 text-gray-900">{selectedUser.parentName}</span>
+                                <span className="ml-2 text-gray-900">{selectedUser.parentName || '—'}</span>
                             </div>
                             <div className="mb-2">
-                                <span className="font-semibold text-gray-700">Última visita:</span>
-                                <span className="ml-2 text-gray-900">{selectedUser.lastVisit || '—'}</span>
+                                <span className="font-semibold text-gray-700">Tel. Responsável:</span>
+                                <span className="ml-2 text-gray-900">{selectedUser.parentPhone || '—'}</span>
+                            </div>
+                            <div className="mb-2">
+                                <span className="font-semibold text-gray-700">Emergência:</span>
+                                <span className="ml-2 text-gray-900">{selectedUser.emergencyContact || '—'}</span>
                             </div>
                         </div>
                     </div>
+                    {selectedUser.observations && (
+                        <div className="mt-4 pt-4 border-t">
+                            <span className="font-semibold text-gray-700">Observações:</span>
+                            <p className="mt-2 text-gray-900">{selectedUser.observations}</p>
+                        </div>
+                    )}
                 </div>
             </div>
         );
@@ -225,60 +217,104 @@ const UsersManagement: React.FC = () => {
                     </div>
                 </div>
             </div>
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
-                <table className="min-w-full divide-y divide-gray-200">
-                    <thead>
-                        <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nome</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Empresa</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cargo</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Telefone</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Responsável</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredUsers.map((user) => (
-                            <tr key={user.id} className="hover:bg-gray-50 transition">
-                                <td className="px-6 py-4 whitespace-nowrap font-semibold text-gray-900">{user.name}</td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <span className={`px-2 py-1 rounded text-xs ${getStatusColor(user.status)}`}>{user.status}</span>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">{user.company || '—'}</td>
-                                <td className="px-6 py-4 whitespace-nowrap">{user.position || '—'}</td>
-                                <td className="px-6 py-4 whitespace-nowrap">{user.phone}</td>
-                                <td className="px-6 py-4 whitespace-nowrap">{user.parentName}</td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="flex items-center space-x-2">
-                                        <button
-                                            className="text-blue-600 hover:text-blue-900 p-2 rounded"
-                                            onClick={() => setSelectedUser(user)}
-                                            title="Visualizar cadastro"
-                                        >
-                                            <Eye className="w-5 h-5" />
-                                        </button>
-                                        <button
-                                            className="text-gray-500 hover:text-gray-800 p-2 rounded"
-                                            title="Editar"
-                                            onClick={() => setEditUser(user)}
-                                        >
-                                            <Edit className="w-5 h-5" />
-                                        </button>
-                                        <button
-                                            className="text-red-600 hover:text-red-900 p-2 rounded"
-                                            title="Excluir"
-                                        // onClick={...}
-                                        >
-                                            <Trash2 className="w-5 h-5" />
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+
+            {/* Loading State */}
+            {loading && (
+                <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="mt-4 text-gray-600">Carregando usuários...</p>
+                </div>
+            )}
+
+            {/* Error State */}
+            {error && (
+                <div className="bg-red-50 border border-red-200 rounded-2xl p-6 flex items-center space-x-3">
+                    <AlertCircle className="w-5 h-5 text-red-600" />
+                    <span className="text-red-800">{error}</span>
+                </div>
+            )}
+
+            {/* Empty State */}
+            {!loading && !error && filteredUsers.length === 0 && (
+                <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm text-center">
+                    <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-600">Nenhum usuário encontrado</p>
+                    <button
+                        onClick={() => setActiveView('register')}
+                        className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-xl hover:bg-blue-700 transition-colors"
+                    >
+                        Cadastrar Primeiro Usuário
+                    </button>
+                </div>
+            )}
+
+            {/* Table */}
+            {!loading && !error && filteredUsers.length > 0 && (
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CPF</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Telefone</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Responsável</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                                {filteredUsers.map((user) => (
+                                    <tr key={user.id} className="hover:bg-gray-50 transition">
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="font-medium text-gray-900">{user.fullName}</div>
+                                            <div className="text-sm text-gray-500">{user.birthDate || '—'}</div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(user.status)}`}>
+                                                {user.status || 'Aguardando'}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.cpf || '—'}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.phone || '—'}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.parentName || '—'}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex items-center space-x-2">
+                                                <button
+                                                    className="text-blue-600 hover:text-blue-900 p-2 rounded hover:bg-blue-50 transition"
+                                                    onClick={() => setSelectedUser(user)}
+                                                    title="Visualizar cadastro"
+                                                >
+                                                    <Eye className="w-5 h-5" />
+                                                </button>
+                                                <button
+                                                    className="text-gray-600 hover:text-gray-900 p-2 rounded hover:bg-gray-50 transition"
+                                                    title="Editar"
+                                                    onClick={() => setEditUser(user)}
+                                                >
+                                                    <Edit className="w-5 h-5" />
+                                                </button>
+                                                <button
+                                                    className="text-red-600 hover:text-red-900 p-2 rounded hover:bg-red-50 transition"
+                                                    title="Excluir"
+                                                    onClick={() => user.id && handleDelete(user.id)}
+                                                >
+                                                    <Trash2 className="w-5 h-5" />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div className="bg-gray-50 px-6 py-3 border-t border-gray-200">
+                        <p className="text-sm text-gray-600">
+                            Total de {filteredUsers.length} usuário(s)
+                        </p>
+                    </div>
+                </div>
+            )}
             {renderUserModal()}
             {renderEditUserModal()}
         </div>

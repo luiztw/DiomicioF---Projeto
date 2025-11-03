@@ -24,62 +24,12 @@
       "lastLogin": "2024-01-15 17:00",
       "evaluationsCount": 8,
       "visitsCount": 5
-    },
-    {
-      "id": "5b22",
-      "fullName": "Teste Silva Santos",
-      "email": "teste@sistema.com.br",
-      "phone": "(11) 98888-7777",
-      "cpf": "999.888.777-66",
-      "rg": "99.888.777-6",
-      "birthDate": "1992-06-15",
-      "address": "Rua Teste, 999, Centro, São Paulo, SP, 01234-999",
-      "role": "Psicólogo",
-      "department": "Psicologia",
-      "admissionDate": "2025-10-13",
-      "salary": "R$ 4.500,00",
-      "workSchedule": "09:00 - 18:00",
-      "observations": "Funcionário de teste",
-      "password": "teste123",
-      "status": "Ativo",
-      "permissions": [
-        "users",
-        "basic"
-      ],
-      "lastLogin": "",
-      "evaluationsCount": 0,
-      "visitsCount": 0
-    },
-    {
-      "id": "2a75",
-      "fullName": "Luis Gay",
-      "email": "teste@teste.com",
-      "phone": "(48) 99999-9999",
-      "cpf": "111.111.111-11",
-      "rg": "46546464456",
-      "birthDate": "1998-07-01",
-      "address": "Rua do caralho, vai se fude, 89898-998",
-      "role": "Coordenador Geral",
-      "department": "Coordenação",
-      "admissionDate": "2025-10-14",
-      "salary": "500000",
-      "workSchedule": "08:00 - 17:00",
-      "observations": "Teste",
-      "password": "123456",
-      "status": "Ativo",
-      "permissions": [
-        "users",
-        "basic"
-      ],
-      "lastLogin": "",
-      "evaluationsCount": 0,
-      "visitsCount": 0
     }
   ],
   "empresas": [
     {
       "id": "1",
-      "name": "Supermercado Central",
+      "name": "Supermercado Central1",
       "cnpj": "12.345.678/0001-90",
       "sector": "Varejo",
       "address": "Rua das Flores, 123 - Centro, São Paulo, SP",
@@ -136,6 +86,22 @@
       "observations": "",
       "status": "Ativo",
       "createdAt": "2025-11-03T22:23:00.016Z"
+    },
+    {
+      "id": "c1f3",
+      "fullName": "Teste",
+      "birthDate": "2025-11-11",
+      "rg": "454654645",
+      "cpf": "258.595.000-09",
+      "address": "Rua Felipe de Oliveira, 616",
+      "phone": "488849498",
+      "parentName": "Teste",
+      "parentPhone": "48999546546",
+      "emergencyContact": "teste",
+      "admissionDate": "2025-11-04",
+      "observations": "teste",
+      "status": "Ativo",
+      "createdAt": "2025-11-03T22:27:27.424Z"
     }
   ]
 }
