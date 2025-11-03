@@ -1,33 +1,8 @@
 {
   "funcionarios": [
     {
-      "id": "2",
-      "fullName": "Prof. Carlos Eduardo Santos",
-      "email": "carlos.santos@sistema.com.br",
-      "phone": "(11) 99999-2222",
-      "cpf": "234.567.890-11",
-      "rg": "23.456.789-0",
-      "birthDate": "1980-08-20",
-      "address": "Av. Paulista, 456, Bela Vista, São Paulo, SP, 01310-000",
-      "role": "Professor Avaliador",
-      "department": "Avaliação",
-      "admissionDate": "2021-08-10",
-      "salary": "R$ 6.500,00",
-      "workSchedule": "07:00 - 16:00",
-      "observations": "Mestrado em Educação, especialista em avaliação pedagógica",
-      "password": "senha123",
-      "status": "Ativo",
-      "permissions": [
-        "users",
-        "evaluations"
-      ],
-      "lastLogin": "2024-01-22 08:15",
-      "evaluationsCount": 78,
-      "visitsCount": 12
-    },
-    {
       "id": "4",
-      "fullName": "João Pedro Oliveira",
+      "fullName": "João Pedro Oliveira Junior",
       "email": "joao.oliveira@sistema.com.br",
       "phone": "(11) 99999-4444",
       "cpf": "456.789.012-33",
@@ -40,7 +15,7 @@
       "salary": "R$ 3.200,00",
       "workSchedule": "08:00 - 17:00",
       "observations": "Cursando Administração",
-      "password": "senha123",
+      "password": "123456",
       "status": "Férias",
       "permissions": [
         "users",
@@ -99,31 +74,6 @@
       "lastLogin": "",
       "evaluationsCount": 0,
       "visitsCount": 0
-    },
-    {
-      "id": "2fea",
-      "fullName": "Luis muito gay",
-      "email": "luiz@dale.com",
-      "phone": "(48) 88888-8888",
-      "cpf": "066.666.666-66",
-      "rg": "56565656",
-      "birthDate": "1988-07-01",
-      "address": "Dlae",
-      "role": "Consultora de RH",
-      "department": "Recursos Humanos",
-      "admissionDate": "1998-07-01",
-      "salary": "R$ 5.000,00",
-      "workSchedule": "08:00 - 17:00",
-      "observations": "",
-      "password": "123123",
-      "status": "Ativo",
-      "permissions": [
-        "users",
-        "basic"
-      ],
-      "lastLogin": "",
-      "evaluationsCount": 0,
-      "visitsCount": 0
     }
   ],
   "empresas": [
@@ -149,27 +99,6 @@
       "status": "Ativo"
     },
     {
-      "id": "2",
-      "name": "Padaria São José",
-      "cnpj": "98.765.432/0001-10",
-      "sector": "Alimentação",
-      "address": "Av. Principal, 456 - Vila Nova, São Paulo, SP",
-      "phone": "(11) 4444-2222",
-      "email": "contato@padariasaojose.com.br",
-      "hrContact": "Roberto Silva",
-      "hrPhone": "(11) 4444-2233",
-      "hrEmail": "roberto@padariasaojose.com.br",
-      "availablePositions": [
-        "Padeiro",
-        "Atendente"
-      ],
-      "observations": "Horário flexível, ambiente familiar",
-      "activeUsers": 2,
-      "totalHired": 5,
-      "lastContact": "2024-01-18",
-      "status": "Ativo"
-    },
-    {
       "id": "3",
       "name": "Loja Fashion Style",
       "cnpj": "11.222.333/0001-44",
@@ -189,6 +118,24 @@
       "totalHired": 3,
       "lastContact": "2024-01-15",
       "status": "Inativo"
+    }
+  ],
+  "usuarios": [
+    {
+      "id": "0400",
+      "fullName": "ARTHUR COELHO",
+      "birthDate": "",
+      "rg": "46546464456",
+      "cpf": "064.265.469-76",
+      "address": "Rua Felipe de Oliveira, 616",
+      "phone": "(48) 99967-3600",
+      "parentName": "ARTHUR COELHO",
+      "parentPhone": "48999999999",
+      "emergencyContact": "TRETRTERT",
+      "admissionDate": "2025-11-10",
+      "observations": "",
+      "status": "Ativo",
+      "createdAt": "2025-11-03T22:23:00.016Z"
     }
   ]
 }

@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { User, Phone, FileText, Save, Plus } from 'lucide-react';
+import { User, Phone, FileText, Save, Plus, CheckCircle, AlertCircle } from 'lucide-react';
+import { usuarioService, Usuario } from '../services/usuarioService';
 
 type UserRegistrationProps = {
   mode?: "edit" | "create";
-  user?: any;
+  user?: Usuario;
   onCancel?: () => void;
-  onSave?: (user: any) => void;
+  onSave?: (user: Usuario) => void;
 };
 
-const UserRegistration: React.FC<UserRegistrationProps> = ({ 
-  mode = "create", 
-  user = null, 
-  onCancel, 
-  onSave 
+const UserRegistration: React.FC<UserRegistrationProps> = ({
+  mode = "create",
+  user = null,
+  onCancel,
+  onSave
 }) => {
   const [formData, setFormData] = useState({
     fullName: '',
@@ -28,11 +29,14 @@ const UserRegistration: React.FC<UserRegistrationProps> = ({
     observations: ''
   });
 
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+
   // Preencher formulário quando em modo de edição
   useEffect(() => {
     if (mode === "edit" && user) {
       setFormData({
-        fullName: user.name || '',
+        fullName: user.fullName || '',
         birthDate: user.birthDate || '',
         rg: user.rg || '',
         cpf: user.cpf || '',
@@ -50,16 +54,91 @@ const UserRegistration: React.FC<UserRegistrationProps> = ({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    // Limpar mensagem ao editar
+    if (message) setMessage(null);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (mode === "edit" && onSave) {
-      onSave({ ...user, ...formData, name: formData.fullName });
-    } else {
-      console.log('Dados do usuário:', formData);
-      // Aqui seria feita a integração com o backend
+  const validateForm = (): boolean => {
+    if (!formData.fullName.trim()) {
+      setMessage({ type: 'error', text: 'O nome completo é obrigatório' });
+      return false;
     }
+    if (!formData.cpf.trim()) {
+      setMessage({ type: 'error', text: 'O CPF é obrigatório' });
+      return false;
+    }
+    if (!formData.phone.trim()) {
+      setMessage({ type: 'error', text: 'O telefone é obrigatório' });
+      return false;
+    }
+    return true;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setLoading(true);
+    setMessage(null);
+
+    try {
+      if (mode === "edit" && user?.id) {
+        const updatedUser = await usuarioService.update(user.id, formData);
+        setMessage({ type: 'success', text: 'Usuário atualizado com sucesso!' });
+        if (onSave) {
+          onSave(updatedUser);
+        }
+      } else {
+        const newUser = await usuarioService.create(formData);
+        setMessage({ type: 'success', text: 'Usuário cadastrado com sucesso!' });
+
+        // Limpar formulário após cadastro
+        setTimeout(() => {
+          setFormData({
+            fullName: '',
+            birthDate: '',
+            rg: '',
+            cpf: '',
+            address: '',
+            phone: '',
+            parentName: '',
+            parentPhone: '',
+            emergencyContact: '',
+            admissionDate: '',
+            observations: ''
+          });
+          setMessage(null);
+        }, 2000);
+      }
+    } catch (error) {
+      console.error('Erro ao salvar usuário:', error);
+      setMessage({
+        type: 'error',
+        text: mode === "edit" ? 'Erro ao atualizar usuário' : 'Erro ao cadastrar usuário'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleNew = () => {
+    setFormData({
+      fullName: '',
+      birthDate: '',
+      rg: '',
+      cpf: '',
+      address: '',
+      phone: '',
+      parentName: '',
+      parentPhone: '',
+      emergencyContact: '',
+      admissionDate: '',
+      observations: ''
+    });
+    setMessage(null);
   };
 
   return (
@@ -74,6 +153,24 @@ const UserRegistration: React.FC<UserRegistrationProps> = ({
           <p className="text-gray-600">
             Registre as informações pessoais e familiares dos novos usuários
           </p>
+        </div>
+      )}
+
+      {/* Mensagem de Feedback */}
+      {message && (
+        <div
+          className={`p-4 rounded-xl flex items-center space-x-3 ${
+            message.type === 'success'
+              ? 'bg-green-50 border border-green-200 text-green-800'
+              : 'bg-red-50 border border-red-200 text-red-800'
+          }`}
+        >
+          {message.type === 'success' ? (
+            <CheckCircle className="w-5 h-5" />
+          ) : (
+            <AlertCircle className="w-5 h-5" />
+          )}
+          <span className="font-medium">{message.text}</span>
         </div>
       )}
 
@@ -237,24 +334,36 @@ const UserRegistration: React.FC<UserRegistrationProps> = ({
         <div className="flex space-x-4">
           <button
             type="submit"
-            className="flex-1 bg-red-600 text-white rounded-xl py-3 px-6 hover:bg-red-700 transition-colors flex items-center justify-center space-x-2"
+            disabled={loading}
+            className={`flex-1 bg-red-600 text-white rounded-xl py-3 px-6 hover:bg-red-700 transition-colors flex items-center justify-center space-x-2 ${
+              loading ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
           >
             <Save className="w-5 h-5" />
-            <span>{mode === "edit" ? "Atualizar Cadastro" : "Salvar Cadastro"}</span>
+            <span>
+              {loading
+                ? 'Salvando...'
+                : mode === "edit"
+                ? "Atualizar Cadastro"
+                : "Salvar Cadastro"}
+            </span>
           </button>
-          
+
           {mode === "edit" ? (
             <button
               type="button"
               onClick={onCancel}
-              className="bg-gray-600 text-white rounded-xl py-3 px-6 hover:bg-gray-700 transition-colors"
+              disabled={loading}
+              className="bg-gray-600 text-white rounded-xl py-3 px-6 hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancelar
             </button>
           ) : (
             <button
               type="button"
-              className="bg-green-600 text-white rounded-xl py-3 px-6 hover:bg-green-700 transition-colors flex items-center space-x-2"
+              onClick={handleNew}
+              disabled={loading}
+              className="bg-green-600 text-white rounded-xl py-3 px-6 hover:bg-green-700 transition-colors flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Plus className="w-5 h-5" />
               <span>Novo</span>
