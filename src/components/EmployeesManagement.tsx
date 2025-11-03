@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { UserCheck, Plus, Search, Filter, Eye, Edit, Trash2, Phone, Mail, Calendar, Award, Clock, Lock } from 'lucide-react';
+import { UserCheck, Plus, Search, Filter, Eye, Edit, Trash2, Phone, Mail, Calendar, Award, Clock, Lock, AlertCircle } from 'lucide-react';
 import { funcionarioService, Funcionario } from '../services/funcionarioService';
+import Toast from './Toast';
 // @ts-ignore
 import { useMask } from '@react-input/mask';
 
@@ -31,6 +32,8 @@ const EmployeesManagement: React.FC = () => {
     const [selectedEmployee, setSelectedEmployee] = useState<Funcionario | null>(null);
     const [showViewModal, setShowViewModal] = useState(false);
     const [editingEmployeeId, setEditingEmployeeId] = useState<number | null>(null);
+    const [toast, setToast] = useState<{ type: 'success' | 'error', message: string } | null>(null);
+    const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean, employeeId: number | null }>({ show: false, employeeId: null });
 
     // Máscaras de input
     const phoneInputRef = useMask({ mask: '(__) _____-____', replacement: { _: /\d/ } });
@@ -93,7 +96,7 @@ const EmployeesManagement: React.FC = () => {
             setEmployees(dataWithBRDates);
         } catch (error) {
             console.error('Erro ao carregar funcionários:', error);
-            alert('Erro ao carregar funcionários. Verifique se o json-server está rodando.');
+            setToast({ type: 'error', message: 'Erro ao carregar funcionários. Verifique se o json-server está rodando.' });
         } finally {
             setLoading(false);
         }
@@ -164,12 +167,12 @@ const EmployeesManagement: React.FC = () => {
             if (editingEmployeeId) {
                 // Atualizar funcionário existente
                 await funcionarioService.update(editingEmployeeId, funcionarioDataWithISODates);
-                alert('Funcionário atualizado com sucesso!');
+                setToast({ type: 'success', message: 'Funcionário atualizado com sucesso!' });
                 setEditingEmployeeId(null);
             } else {
                 // Criar novo funcionário
                 await funcionarioService.create(funcionarioDataWithISODates);
-                alert('Funcionário cadastrado com sucesso!');
+                setToast({ type: 'success', message: 'Funcionário cadastrado com sucesso!' });
             }
 
             // Recarregar lista de funcionários
@@ -195,10 +198,9 @@ const EmployeesManagement: React.FC = () => {
             });
 
             setActiveView('list');
-            alert('Funcionário cadastrado com sucesso!');
         } catch (error) {
             console.error('Erro ao cadastrar funcionário:', error);
-            alert('Erro ao cadastrar funcionário. Verifique se o json-server está rodando.');
+            setToast({ type: 'error', message: 'Erro ao cadastrar funcionário. Verifique se o json-server está rodando.' });
         } finally {
             setLoading(false);
         }
@@ -233,24 +235,33 @@ const EmployeesManagement: React.FC = () => {
         setActiveView('register');
     };
 
-    // Função para excluir funcionário
-    const handleDeleteEmployee = async (id: number | undefined) => {
+    // Função para abrir modal de confirmação de exclusão
+    const handleDeleteClick = (id: number | undefined) => {
         if (!id) return;
+        setDeleteConfirm({ show: true, employeeId: id });
+    };
 
-        const confirmDelete = window.confirm('Tem certeza que deseja excluir este funcionário?');
-        if (!confirmDelete) return;
+    // Função para confirmar exclusão de funcionário
+    const handleDeleteConfirm = async () => {
+        if (!deleteConfirm.employeeId) return;
 
         try {
             setLoading(true);
-            await funcionarioService.delete(id);
+            await funcionarioService.delete(deleteConfirm.employeeId);
             await loadEmployees();
-            alert('Funcionário excluído com sucesso!');
+            setToast({ type: 'success', message: 'Funcionário excluído com sucesso!' });
         } catch (error) {
             console.error('Erro ao excluir funcionário:', error);
-            alert('Erro ao excluir funcionário. Tente novamente.');
+            setToast({ type: 'error', message: 'Erro ao excluir funcionário. Tente novamente.' });
         } finally {
             setLoading(false);
+            setDeleteConfirm({ show: false, employeeId: null });
         }
+    };
+
+    // Função para cancelar exclusão
+    const handleDeleteCancel = () => {
+        setDeleteConfirm({ show: false, employeeId: null });
     };
 
     const getStatusColor = (status: string) => {
@@ -703,7 +714,7 @@ const EmployeesManagement: React.FC = () => {
                                     <Edit className="w-4 h-4" />
                                 </button>
                                 <button
-                                    onClick={() => handleDeleteEmployee(employee.id)}
+                                    onClick={() => handleDeleteClick(employee.id)}
                                     className="text-red-600 hover:text-red-900 p-1 rounded"
                                     title="Excluir"
                                 >
@@ -866,6 +877,49 @@ const EmployeesManagement: React.FC = () => {
 
     return (
         <div className="space-y-8">
+            {/* Toast Notification */}
+            {toast && (
+                <Toast
+                    type={toast.type}
+                    message={toast.message}
+                    onClose={() => setToast(null)}
+                />
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {deleteConfirm.show && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-xl max-w-md w-full p-6 mx-4">
+                        <div className="flex items-center space-x-3 mb-4">
+                            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                                <AlertCircle className="w-6 h-6 text-red-600" />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-semibold text-gray-900">Confirmar Exclusão</h3>
+                                <p className="text-sm text-gray-600">Esta ação não pode ser desfeita</p>
+                            </div>
+                        </div>
+                        <p className="text-gray-700 mb-6">
+                            Tem certeza que deseja excluir este funcionário? Todos os dados relacionados serão perdidos.
+                        </p>
+                        <div className="flex space-x-3">
+                            <button
+                                onClick={handleDeleteCancel}
+                                className="flex-1 px-4 py-2 rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleDeleteConfirm}
+                                className="flex-1 px-4 py-2 rounded-xl bg-red-600 text-white hover:bg-red-700 transition-colors font-medium"
+                            >
+                                Excluir
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Content */}
             {renderContent()}
 

@@ -5,6 +5,7 @@ import TrialPeriod from './TrialPeriod';
 import ParentInterview from './ParentInterview';
 import WorkPlacement from './WorkPlacement';
 import FollowUp from './FollowUp';
+import Toast from './Toast';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchUsuarios, deleteUsuario } from '../store/slices/usuariosSlice';
 import { Usuario } from '../services/usuarioService';
@@ -18,6 +19,8 @@ const UsersManagement: React.FC = () => {
     const [statusFilter, setStatusFilter] = useState('all');
     const [selectedUser, setSelectedUser] = useState<Usuario | null>(null);
     const [editUser, setEditUser] = useState<Usuario | null>(null);
+    const [toast, setToast] = useState<{ type: 'success' | 'error', message: string } | null>(null);
+    const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean, userId: string | null }>({ show: false, userId: null });
 
     // Carregar usuários ao montar o componente
     useEffect(() => {
@@ -55,17 +58,28 @@ const UsersManagement: React.FC = () => {
         }
     };
 
-    const handleDelete = async (id: string) => {
-        if (window.confirm('Tem certeza que deseja excluir este usuário?')) {
-            try {
-                await dispatch(deleteUsuario(id)).unwrap();
-                // Recarregar lista após exclusão
-                dispatch(fetchUsuarios());
-            } catch (error) {
-                console.error('Erro ao excluir usuário:', error);
-                alert('Erro ao excluir usuário');
-            }
+    const handleDeleteClick = (id: string) => {
+        setDeleteConfirm({ show: true, userId: id });
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (!deleteConfirm.userId) return;
+
+        try {
+            await dispatch(deleteUsuario(deleteConfirm.userId)).unwrap();
+            // Recarregar lista após exclusão
+            dispatch(fetchUsuarios());
+            setToast({ type: 'success', message: 'Usuário excluído com sucesso!' });
+        } catch (error) {
+            console.error('Erro ao excluir usuário:', error);
+            setToast({ type: 'error', message: 'Erro ao excluir usuário' });
+        } finally {
+            setDeleteConfirm({ show: false, userId: null });
         }
+    };
+
+    const handleDeleteCancel = () => {
+        setDeleteConfirm({ show: false, userId: null });
     };
 
     const filteredUsers = usuarios.filter((user: Usuario) => {
@@ -297,7 +311,7 @@ const UsersManagement: React.FC = () => {
                                                 <button
                                                     className="text-red-600 hover:text-red-900 p-2 rounded hover:bg-red-50 transition"
                                                     title="Excluir"
-                                                    onClick={() => user.id && handleDelete(user.id)}
+                                                    onClick={() => user.id && handleDeleteClick(user.id)}
                                                 >
                                                     <Trash2 className="w-5 h-5" />
                                                 </button>
@@ -339,6 +353,49 @@ const UsersManagement: React.FC = () => {
 
     return (
         <div className="space-y-8">
+            {/* Toast Notification */}
+            {toast && (
+                <Toast
+                    type={toast.type}
+                    message={toast.message}
+                    onClose={() => setToast(null)}
+                />
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {deleteConfirm.show && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-xl max-w-md w-full p-6 mx-4">
+                        <div className="flex items-center space-x-3 mb-4">
+                            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                                <AlertCircle className="w-6 h-6 text-red-600" />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-semibold text-gray-900">Confirmar Exclusão</h3>
+                                <p className="text-sm text-gray-600">Esta ação não pode ser desfeita</p>
+                            </div>
+                        </div>
+                        <p className="text-gray-700 mb-6">
+                            Tem certeza que deseja excluir este usuário? Todos os dados relacionados serão perdidos.
+                        </p>
+                        <div className="flex space-x-3">
+                            <button
+                                onClick={handleDeleteCancel}
+                                className="flex-1 px-4 py-2 rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleDeleteConfirm}
+                                className="flex-1 px-4 py-2 rounded-xl bg-red-600 text-white hover:bg-red-700 transition-colors font-medium"
+                            >
+                                Excluir
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                     {menuItems.map((item) => {

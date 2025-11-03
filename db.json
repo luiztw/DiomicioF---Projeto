@@ -72,22 +72,6 @@
   ],
   "usuarios": [
     {
-      "id": "0400",
-      "fullName": "ARTHUR COELHO",
-      "birthDate": "",
-      "rg": "46546464456",
-      "cpf": "064.265.469-76",
-      "address": "Rua Felipe de Oliveira, 616",
-      "phone": "(48) 99967-3600",
-      "parentName": "ARTHUR COELHO",
-      "parentPhone": "48999999999",
-      "emergencyContact": "TRETRTERT",
-      "admissionDate": "2025-11-10",
-      "observations": "",
-      "status": "Ativo",
-      "createdAt": "2025-11-03T22:23:00.016Z"
-    },
-    {
       "id": "c1f3",
       "fullName": "Teste",
       "birthDate": "2025-11-11",
@@ -107,7 +91,7 @@
   "avaliacoes": [
     {
       "id": "7788",
-      "usuarioId": "0400",
+      "usuarioId": null,
       "usuarioNome": "ARTHUR COELHO",
       "tipoAvaliacao": "first",
       "dataAvaliacao": "2025-11-03",

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Building, Plus, Search, Filter, Edit, Trash2, Phone, Mail, MapPin, Users, Calendar, Eye } from 'lucide-react';
+import { Building, Plus, Search, Filter, Edit, Trash2, Phone, Mail, MapPin, Users, Calendar, Eye, AlertCircle } from 'lucide-react';
 import { empresaService, Empresa } from '../services/empresaService';
+import Toast from './Toast';
 // @ts-ignore
 import { useMask } from '@react-input/mask';
 
@@ -13,6 +14,8 @@ const CompaniesManagement: React.FC = () => {
     const [editingCompanyId, setEditingCompanyId] = useState<number | string | null>(null);
     const [selectedCompany, setSelectedCompany] = useState<Empresa | null>(null);
     const [showViewModal, setShowViewModal] = useState(false);
+    const [toast, setToast] = useState<{ type: 'success' | 'error', message: string } | null>(null);
+    const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean, companyId: number | string | null }>({ show: false, companyId: null });
     const [formData, setFormData] = useState({
         name: '',
         cnpj: '',
@@ -46,7 +49,7 @@ const CompaniesManagement: React.FC = () => {
             setCompanies(data);
         } catch (error) {
             console.error('Erro ao carregar empresas:', error);
-            alert('Erro ao carregar empresas. Verifique se o json-server está rodando.');
+            setToast({ type: 'error', message: 'Erro ao carregar empresas. Verifique se o json-server está rodando.' });
         } finally {
             setLoading(false);
         }
@@ -90,12 +93,12 @@ const CompaniesManagement: React.FC = () => {
             if (editingCompanyId) {
                 // Atualizar empresa existente
                 await empresaService.update(editingCompanyId, formData);
-                alert('Empresa atualizada com sucesso!');
+                setToast({ type: 'success', message: 'Empresa atualizada com sucesso!' });
                 setEditingCompanyId(null);
             } else {
                 // Criar nova empresa
                 await empresaService.create(formData);
-                alert('Empresa cadastrada com sucesso!');
+                setToast({ type: 'success', message: 'Empresa cadastrada com sucesso!' });
             }
 
             // Recarregar lista de empresas
@@ -119,7 +122,7 @@ const CompaniesManagement: React.FC = () => {
             setActiveView('list');
         } catch (error) {
             console.error('Erro ao salvar empresa:', error);
-            alert('Erro ao salvar empresa. Verifique se o json-server está rodando.');
+            setToast({ type: 'error', message: 'Erro ao salvar empresa. Verifique se o json-server está rodando.' });
         } finally {
             setLoading(false);
         }
@@ -150,24 +153,33 @@ const CompaniesManagement: React.FC = () => {
         setActiveView('register');
     };
 
-    // Função para excluir empresa
-    const handleDeleteCompany = async (id: number | string | undefined) => {
+    // Função para abrir modal de confirmação de exclusão
+    const handleDeleteClick = (id: number | string | undefined) => {
         if (!id) return;
+        setDeleteConfirm({ show: true, companyId: id });
+    };
 
-        const confirmDelete = window.confirm('Tem certeza que deseja excluir esta empresa?');
-        if (!confirmDelete) return;
+    // Função para confirmar exclusão de empresa
+    const handleDeleteConfirm = async () => {
+        if (!deleteConfirm.companyId) return;
 
         try {
             setLoading(true);
-            await empresaService.delete(id);
+            await empresaService.delete(deleteConfirm.companyId);
             await loadCompanies();
-            alert('Empresa excluída com sucesso!');
+            setToast({ type: 'success', message: 'Empresa excluída com sucesso!' });
         } catch (error) {
             console.error('Erro ao excluir empresa:', error);
-            alert('Erro ao excluir empresa. Tente novamente.');
+            setToast({ type: 'error', message: 'Erro ao excluir empresa. Tente novamente.' });
         } finally {
             setLoading(false);
+            setDeleteConfirm({ show: false, companyId: null });
         }
+    };
+
+    // Função para cancelar exclusão
+    const handleDeleteCancel = () => {
+        setDeleteConfirm({ show: false, companyId: null });
     };
 
     const getStatusColor = (status: string) => {
@@ -554,7 +566,7 @@ const CompaniesManagement: React.FC = () => {
                                     <Edit className="w-4 h-4" />
                                 </button>
                                 <button
-                                    onClick={() => handleDeleteCompany(company.id)}
+                                    onClick={() => handleDeleteClick(company.id)}
                                     className="text-red-600 hover:text-red-900 p-1 rounded"
                                     title="Excluir"
                                 >
@@ -720,6 +732,49 @@ const CompaniesManagement: React.FC = () => {
 
     return (
         <div className="space-y-8">
+            {/* Toast Notification */}
+            {toast && (
+                <Toast
+                    type={toast.type}
+                    message={toast.message}
+                    onClose={() => setToast(null)}
+                />
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {deleteConfirm.show && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-xl max-w-md w-full p-6 mx-4">
+                        <div className="flex items-center space-x-3 mb-4">
+                            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                                <AlertCircle className="w-6 h-6 text-red-600" />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-semibold text-gray-900">Confirmar Exclusão</h3>
+                                <p className="text-sm text-gray-600">Esta ação não pode ser desfeita</p>
+                            </div>
+                        </div>
+                        <p className="text-gray-700 mb-6">
+                            Tem certeza que deseja excluir esta empresa? Todos os dados relacionados serão perdidos.
+                        </p>
+                        <div className="flex space-x-3">
+                            <button
+                                onClick={handleDeleteCancel}
+                                className="flex-1 px-4 py-2 rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleDeleteConfirm}
+                                className="flex-1 px-4 py-2 rounded-xl bg-red-600 text-white hover:bg-red-700 transition-colors font-medium"
+                            >
+                                Excluir
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Content */}
             {renderContent()}
 
