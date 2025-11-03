@@ -3,6 +3,7 @@ import { User, Phone, FileText, Save, Plus, CheckCircle, AlertCircle } from 'luc
 import { Usuario } from '../services/usuarioService';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { createUsuario, updateUsuario, clearError } from '../store/slices/usuariosSlice';
+import { formatCPF, formatRG, formatPhone } from '../utils/masks';
 
 type UserRegistrationProps = {
   mode?: "edit" | "create";
@@ -64,7 +65,18 @@ const UserRegistration: React.FC<UserRegistrationProps> = ({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+
+    // Apply masks for specific fields
+    let formattedValue = value;
+    if (name === 'cpf') {
+      formattedValue = formatCPF(value);
+    } else if (name === 'rg') {
+      formattedValue = formatRG(value);
+    } else if (name === 'phone' || name === 'parentPhone') {
+      formattedValue = formatPhone(value);
+    }
+
+    setFormData(prev => ({ ...prev, [name]: formattedValue }));
     // Limpar mensagens ao editar
     if (message) setMessage(null);
     if (error) dispatch(clearError());
