@@ -1,22 +1,30 @@
-import React, { useState } from 'react';
-import { LogIn, User, Lock, Eye, EyeOff, BarChart3 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { LogIn, User, Lock, Eye, EyeOff, BarChart3, AlertCircle } from 'lucide-react';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { login, clearError } from '../store/slices/authSlice';
 
-interface LoginProps {
-    onLogin: (username: string, password: string) => void;
-}
+const Login: React.FC = () => {
+    const dispatch = useAppDispatch();
+    const { loading, error } = useAppSelector((state) => state.auth);
 
-const Login: React.FC<LoginProps> = ({ onLogin }) => {
-    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
-    const [errors, setErrors] = useState({ username: '', password: '' });
+    const [errors, setErrors] = useState({ email: '', password: '' });
+
+    // Limpar erro do Redux ao desmontar
+    useEffect(() => {
+        return () => {
+            dispatch(clearError());
+        };
+    }, [dispatch]);
 
     const validateForm = () => {
         let isValid = true;
-        const newErrors = { username: '', password: '' };
+        const newErrors = { email: '', password: '' };
 
-        if (!username.trim()) {
-            newErrors.username = 'O email é obrigatório';
+        if (!email.trim()) {
+            newErrors.email = 'O email é obrigatório';
             isValid = false;
         }
 
@@ -32,11 +40,12 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         return isValid;
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (validateForm()) {
-            onLogin(username, password);
+            dispatch(clearError());
+            dispatch(login({ email, password }));
         }
     };
 
@@ -59,8 +68,16 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                         <p className="text-gray-600">Entre com suas credenciais para acessar o sistema</p>
                     </div>
 
+                    {/* Error from Redux */}
+                    {error && (
+                        <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 flex items-center space-x-3">
+                            <AlertCircle className="w-5 h-5 text-red-600" />
+                            <span className="text-sm text-red-800">{error}</span>
+                        </div>
+                    )}
+
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* Username Field */}
+                        {/* Email Field */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Email
@@ -71,20 +88,21 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                                 </div>
                                 <input
                                     type="text"
-                                    value={username}
+                                    value={email}
                                     onChange={(e) => {
-                                        setUsername(e.target.value);
-                                        if (errors.username) setErrors({ ...errors, username: '' });
+                                        setEmail(e.target.value);
+                                        if (errors.email) setErrors({ ...errors, email: '' });
+                                        if (error) dispatch(clearError());
                                     }}
-                                    className={`w-full pl-12 pr-4 py-3 rounded-xl border ${errors.username
+                                    className={`w-full pl-12 pr-4 py-3 rounded-xl border ${errors.email
                                             ? 'border-red-500 focus:ring-red-200'
                                             : 'border-gray-200 focus:border-blue-500 focus:ring-blue-200'
                                         } focus:ring-2 transition-all`}
                                     placeholder="Digite seu email"
                                 />
                             </div>
-                            {errors.username && (
-                                <p className="mt-2 text-sm text-red-600">{errors.username}</p>
+                            {errors.email && (
+                                <p className="mt-2 text-sm text-red-600">{errors.email}</p>
                             )}
                         </div>
 
@@ -147,10 +165,22 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                         {/* Submit Button */}
                         <button
                             type="submit"
-                            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl py-3 px-6 hover:from-blue-700 hover:to-purple-700 transition-all flex items-center justify-center space-x-2 font-medium shadow-lg hover:shadow-xl"
+                            disabled={loading}
+                            className={`w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl py-3 px-6 hover:from-blue-700 hover:to-purple-700 transition-all flex items-center justify-center space-x-2 font-medium shadow-lg hover:shadow-xl ${
+                                loading ? 'opacity-50 cursor-not-allowed' : ''
+                            }`}
                         >
-                            <LogIn className="w-5 h-5" />
-                            <span>Entrar</span>
+                            {loading ? (
+                                <>
+                                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                                    <span>Entrando...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <LogIn className="w-5 h-5" />
+                                    <span>Entrar</span>
+                                </>
+                            )}
                         </button>
                     </form>
 

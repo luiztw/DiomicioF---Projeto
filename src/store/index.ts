@@ -3,9 +3,11 @@ import usuariosReducer from './slices/usuariosSlice';
 import funcionariosReducer from './slices/funcionariosSlice';
 import empresasReducer from './slices/empresasSlice';
 import avaliacoesReducer from './slices/avaliacoesSlice';
+import authReducer from './slices/authSlice';
 
 export const store = configureStore({
   reducer: {
+    auth: authReducer,
     usuarios: usuariosReducer,
     funcionarios: funcionariosReducer,
     empresas: empresasReducer,

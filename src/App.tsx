@@ -1,16 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Users, Building, BarChart3, Menu, X, UserCheck, LogOut } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import UsersManagement from './components/UsersManagement';
 import CompaniesManagement from './components/CompaniesManagement';
 import EmployeesManagement from './components/EmployeesManagement';
 import Login from './components/Login';
+import { useAppDispatch, useAppSelector } from './store/hooks';
+import { logout, restoreSession } from './store/slices/authSlice';
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentUser, setCurrentUser] = useState('');
+  const dispatch = useAppDispatch();
+  const { isAuthenticated, currentUser } = useAppSelector((state) => state.auth);
+
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Restaurar sessão do localStorage ao carregar o app
+  useEffect(() => {
+    dispatch(restoreSession());
+  }, [dispatch]);
 
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3, color: 'text-blue-600' },
@@ -19,18 +27,8 @@ function App() {
     { id: 'employees', label: 'Funcionários', icon: UserCheck, color: 'text-purple-600' }
   ];
 
-  const handleLogin = (username: string, password: string) => {
-    // Aqui você pode adicionar a lógica de autenticação real
-    // Por enquanto, vamos simular uma autenticação básica
-    if (username && password) {
-      setIsAuthenticated(true);
-      setCurrentUser(username);
-    }
-  };
-
   const handleLogout = () => {
-    setIsAuthenticated(false);
-    setCurrentUser('');
+    dispatch(logout());
     setActiveTab('dashboard');
   };
 
@@ -51,7 +49,7 @@ function App() {
 
   // Se não estiver autenticado, mostrar tela de login
   if (!isAuthenticated) {
-    return <Login onLogin={handleLogin} />;
+    return <Login />;
   }
 
   return (
@@ -76,7 +74,7 @@ function App() {
                 <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                   <Users className="w-4 h-4 text-blue-600" />
                 </div>
-                <span className="text-gray-700 font-medium">{currentUser}</span>
+                <span className="text-gray-700 font-medium">{currentUser?.fullName || currentUser?.email}</span>
               </div>
 
               {/* Desktop Navigation */}
@@ -128,7 +126,7 @@ function App() {
                 <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                   <Users className="w-4 h-4 text-blue-600" />
                 </div>
-                <span className="text-gray-700 font-medium">{currentUser}</span>
+                <span className="text-gray-700 font-medium">{currentUser?.fullName || currentUser?.email}</span>
               </div>
 
               <nav className="space-y-2">
