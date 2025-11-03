@@ -4,6 +4,7 @@ import funcionariosReducer from './slices/funcionariosSlice';
 import empresasReducer from './slices/empresasSlice';
 import avaliacoesReducer from './slices/avaliacoesSlice';
 import authReducer from './slices/authSlice';
+import parentInterviewsReducer from './slices/parentInterviewsSlice';
 
 export const store = configureStore({
   reducer: {
@@ -12,6 +13,7 @@ export const store = configureStore({
     funcionarios: funcionariosReducer,
     empresas: empresasReducer,
     avaliacoes: avaliacoesReducer,
+    parentInterviews: parentInterviewsReducer,
   },
 });
 

@@ -1,7 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MessageCircle, Users, Heart, Shield } from 'lucide-react';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { fetchUsuarios } from '../store/slices/usuariosSlice';
+import { createParentInterview } from '../store/slices/parentInterviewsSlice';
 
 const ParentInterview: React.FC = () => {
+  const dispatch = useAppDispatch();
+  const { usuarios } = useAppSelector((state) => state.usuarios);
+  const { loading } = useAppSelector((state) => state.parentInterviews);
+
   const [selectedUser, setSelectedUser] = useState('');
   const [interviewDate, setInterviewDate] = useState('');
   const [interviewer, setInterviewer] = useState('');
@@ -10,26 +17,53 @@ const ParentInterview: React.FC = () => {
   const [supportLevel, setSupportLevel] = useState('');
   const [autonomyEncouragement, setAutonomyEncouragement] = useState('');
   const [overprotectionSigns, setOverprotectionSigns] = useState('');
-  
-  const users = [
-    { id: '1', name: 'Maria Silva Santos' },
-    { id: '2', name: 'João Pedro Lima' },
-    { id: '3', name: 'Ana Costa Ferreira' },
-    { id: '4', name: 'Carlos Eduardo' }
-  ];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    dispatch(fetchUsuarios());
+  }, [dispatch]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Entrevista registrada:', {
-      user: selectedUser,
-      date: interviewDate,
-      interviewer,
-      summary,
-      familyParticipation,
-      supportLevel,
-      autonomyEncouragement,
-      overprotectionSigns
-    });
+
+    if (!selectedUser || !interviewDate || !interviewer) {
+      alert('Por favor, preencha todos os campos obrigatórios');
+      return;
+    }
+
+    const usuario = usuarios.find(u => u.id === selectedUser);
+    if (!usuario) {
+      alert('Usuário não encontrado');
+      return;
+    }
+
+    try {
+      await dispatch(createParentInterview({
+        usuarioId: selectedUser,
+        usuarioNome: usuario.fullName,
+        dataEntrevista: interviewDate,
+        entrevistador: interviewer,
+        resumo: summary,
+        participacaoFamiliar: familyParticipation,
+        parecerApoio: supportLevel,
+        estimuloAutonomia: autonomyEncouragement,
+        registrosProtecao: overprotectionSigns
+      })).unwrap();
+
+      alert('Entrevista registrada com sucesso!');
+
+      // Limpar formulário
+      setSelectedUser('');
+      setInterviewDate('');
+      setInterviewer('');
+      setSummary('');
+      setFamilyParticipation('');
+      setSupportLevel('');
+      setAutonomyEncouragement('');
+      setOverprotectionSigns('');
+    } catch (error) {
+      alert('Erro ao registrar entrevista. Tente novamente.');
+      console.error('Erro ao registrar entrevista:', error);
+    }
   };
 
   return (
@@ -60,10 +94,11 @@ const ParentInterview: React.FC = () => {
                 value={selectedUser}
                 onChange={(e) => setSelectedUser(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-all"
+                required
               >
                 <option value="">Selecione o usuário</option>
-                {users.map(user => (
-                  <option key={user.id} value={user.id}>{user.name}</option>
+                {usuarios.map(user => (
+                  <option key={user.id} value={user.id}>{user.fullName}</option>
                 ))}
               </select>
             </div>
@@ -75,9 +110,10 @@ const ParentInterview: React.FC = () => {
                 value={interviewDate}
                 onChange={(e) => setInterviewDate(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-all"
+                required
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Entrevistador</label>
               <input
@@ -86,6 +122,7 @@ const ParentInterview: React.FC = () => {
                 onChange={(e) => setInterviewer(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-all"
                 placeholder="Nome do profissional responsável"
+                required
               />
             </div>
           </div>
@@ -201,10 +238,11 @@ const ParentInterview: React.FC = () => {
         <div className="flex justify-center">
           <button
             type="submit"
-            className="bg-red-600 text-white rounded-xl py-4 px-8 hover:bg-red-700 transition-colors flex items-center space-x-2 text-lg font-medium"
+            disabled={loading}
+            className="bg-red-600 text-white rounded-xl py-4 px-8 hover:bg-red-700 transition-colors flex items-center space-x-2 text-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <MessageCircle className="w-6 h-6" />
-            <span>Salvar Entrevista</span>
+            <span>{loading ? 'Salvando...' : 'Salvar Entrevista'}</span>
           </button>
         </div>
       </form>
