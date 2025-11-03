@@ -103,5 +103,29 @@
       "status": "Ativo",
       "createdAt": "2025-11-03T22:27:27.424Z"
     }
+  ],
+  "avaliacoes": [
+    {
+      "id": "7788",
+      "usuarioId": "0400",
+      "usuarioNome": "ARTHUR COELHO",
+      "tipoAvaliacao": "first",
+      "dataAvaliacao": "2025-11-03",
+      "respostas": {
+        "0": "sim",
+        "1": "maioria",
+        "2": "maioria",
+        "3": "maioria",
+        "4": "maioria",
+        "5": "maioria",
+        "6": "maioria",
+        "7": "maioria",
+        "8": "maioria",
+        "9": "maioria"
+      },
+      "observacoes": "tete",
+      "avaliador": "testete",
+      "createdAt": "2025-11-03T22:35:15.992Z"
+    }
   ]
 }

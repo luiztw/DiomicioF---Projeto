@@ -1,19 +1,33 @@
-import React, { useState } from 'react';
-import { ClipboardCheck, User, Calendar, FileSignature } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ClipboardCheck, User, Calendar, FileSignature, CheckCircle, AlertCircle } from 'lucide-react';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { fetchUsuarios } from '../store/slices/usuariosSlice';
+import { createAvaliacao, clearError } from '../store/slices/avaliacoesSlice';
 
 const TrialPeriod: React.FC = () => {
+  const dispatch = useAppDispatch();
+  const { usuarios } = useAppSelector((state) => state.usuarios);
+  const { loading, error } = useAppSelector((state) => state.avaliacoes);
+
   const [selectedUser, setSelectedUser] = useState('');
-  const [evaluationType, setEvaluationType] = useState('first');
-  const [responses, setResponses] = useState<{[key: string]: string}>({});
+  const [evaluationType, setEvaluationType] = useState<'first' | 'second'>('first');
+  const [evaluationDate, setEvaluationDate] = useState(new Date().toISOString().split('T')[0]);
+  const [responses, setResponses] = useState<{[key: number]: string}>({});
   const [observations, setObservations] = useState('');
   const [evaluator, setEvaluator] = useState('');
+  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
-  const users = [
-    { id: '1', name: 'Maria Silva Santos' },
-    { id: '2', name: 'João Pedro Lima' },
-    { id: '3', name: 'Ana Costa Ferreira' },
-    { id: '4', name: 'Carlos Eduardo' }
-  ];
+  // Carregar usuários ao montar o componente
+  useEffect(() => {
+    dispatch(fetchUsuarios());
+  }, [dispatch]);
+
+  // Efeito para exibir erros do Redux
+  useEffect(() => {
+    if (error) {
+      setMessage({ type: 'error', text: error });
+    }
+  }, [error]);
 
   const questions = [
     'Demonstra interesse pelas atividades propostas?',
@@ -39,15 +53,65 @@ const TrialPeriod: React.FC = () => {
     setResponses(prev => ({ ...prev, [questionIndex]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const validateForm = (): boolean => {
+    if (!selectedUser) {
+      setMessage({ type: 'error', text: 'Selecione um usuário' });
+      return false;
+    }
+    if (!evaluator.trim()) {
+      setMessage({ type: 'error', text: 'Informe o nome do avaliador' });
+      return false;
+    }
+    if (Object.keys(responses).length < questions.length) {
+      setMessage({ type: 'error', text: 'Responda todas as questões' });
+      return false;
+    }
+    return true;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Avaliação submetida:', {
-      user: selectedUser,
-      type: evaluationType,
-      responses,
-      observations,
-      evaluator
-    });
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setMessage(null);
+    dispatch(clearError());
+
+    const usuarioSelecionado = usuarios.find(u => u.id === selectedUser);
+    if (!usuarioSelecionado) {
+      setMessage({ type: 'error', text: 'Usuário não encontrado' });
+      return;
+    }
+
+    try {
+      await dispatch(createAvaliacao({
+        usuarioId: selectedUser,
+        usuarioNome: usuarioSelecionado.fullName,
+        tipoAvaliacao: evaluationType,
+        dataAvaliacao: evaluationDate,
+        respostas: responses,
+        observacoes: observations,
+        avaliador: evaluator
+      })).unwrap();
+
+      setMessage({ type: 'success', text: 'Avaliação cadastrada com sucesso!' });
+
+      // Limpar formulário após sucesso
+      setTimeout(() => {
+        setSelectedUser('');
+        setEvaluationType('first');
+        setEvaluationDate(new Date().toISOString().split('T')[0]);
+        setResponses({});
+        setObservations('');
+        setEvaluator('');
+        setMessage(null);
+      }, 2000);
+    } catch (error) {
+      console.error('Erro ao salvar avaliação:', error);
+      setMessage({ type: 'error', text: 'Erro ao cadastrar avaliação' });
+    }
   };
 
   return (
@@ -63,6 +127,24 @@ const TrialPeriod: React.FC = () => {
         </p>
       </div>
 
+      {/* Mensagem de Feedback */}
+      {message && (
+        <div
+          className={`p-4 rounded-xl flex items-center space-x-3 ${
+            message.type === 'success'
+              ? 'bg-green-50 border border-green-200 text-green-800'
+              : 'bg-red-50 border border-red-200 text-red-800'
+          }`}
+        >
+          {message.type === 'success' ? (
+            <CheckCircle className="w-5 h-5" />
+          ) : (
+            <AlertCircle className="w-5 h-5" />
+          )}
+          <span className="font-medium">{message.text}</span>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Informações da Avaliação */}
         <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
@@ -73,37 +155,39 @@ const TrialPeriod: React.FC = () => {
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Usuário</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Usuário *</label>
               <select
                 value={selectedUser}
                 onChange={(e) => setSelectedUser(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
+                required
               >
                 <option value="">Selecione o usuário</option>
-                {users.map(user => (
-                  <option key={user.id} value={user.id}>{user.name}</option>
+                {usuarios.map(user => (
+                  <option key={user.id} value={user.id}>{user.fullName}</option>
                 ))}
               </select>
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Tipo de Avaliação</label>
               <select
                 value={evaluationType}
-                onChange={(e) => setEvaluationType(e.target.value)}
+                onChange={(e) => setEvaluationType(e.target.value as 'first' | 'second')}
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
               >
                 <option value="first">1ª Avaliação</option>
                 <option value="second">2ª Avaliação</option>
               </select>
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Data da Avaliação</label>
               <input
                 type="date"
+                value={evaluationDate}
+                onChange={(e) => setEvaluationDate(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
-                defaultValue={new Date().toISOString().split('T')[0]}
               />
             </div>
           </div>
@@ -166,7 +250,7 @@ const TrialPeriod: React.FC = () => {
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Avaliador Responsável
+                Avaliador Responsável *
               </label>
               <input
                 type="text"
@@ -174,6 +258,7 @@ const TrialPeriod: React.FC = () => {
                 onChange={(e) => setEvaluator(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all"
                 placeholder="Nome completo do professor/avaliador"
+                required
               />
             </div>
           </div>
@@ -183,10 +268,13 @@ const TrialPeriod: React.FC = () => {
         <div className="flex justify-center">
           <button
             type="submit"
-            className="bg-green-600 text-white rounded-xl py-4 px-8 hover:bg-green-700 transition-colors flex items-center space-x-2 text-lg font-medium"
+            disabled={loading}
+            className={`bg-green-600 text-white rounded-xl py-4 px-8 hover:bg-green-700 transition-colors flex items-center space-x-2 text-lg font-medium ${
+              loading ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
           >
             <ClipboardCheck className="w-6 h-6" />
-            <span>Salvar Avaliação</span>
+            <span>{loading ? 'Salvando...' : 'Salvar Avaliação'}</span>
           </button>
         </div>
       </form>

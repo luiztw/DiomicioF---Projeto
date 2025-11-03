@@ -2,12 +2,14 @@ import { configureStore } from '@reduxjs/toolkit';
 import usuariosReducer from './slices/usuariosSlice';
 import funcionariosReducer from './slices/funcionariosSlice';
 import empresasReducer from './slices/empresasSlice';
+import avaliacoesReducer from './slices/avaliacoesSlice';
 
 export const store = configureStore({
   reducer: {
     usuarios: usuariosReducer,
     funcionarios: funcionariosReducer,
     empresas: empresasReducer,
+    avaliacoes: avaliacoesReducer,
   },
 });
 
